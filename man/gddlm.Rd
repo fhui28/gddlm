@@ -59,8 +59,125 @@ See manuscript for more details (currently in preparation).
 }
 \examples{
 \dontrun{
-TO BE DONE!!!
+library(tidyverse)
+library(GJRM)
+library(mgcv)
+library(mvtnorm)
+
+# Simulation setting and data generation
+set.seed(082025)
+n <- 200
+p <- 10
+H <- abs(outer(1:p, 1:p, "-"))
+H <- 0.8^H
+X <- cbind(1, rmvnorm(n, sigma = H))
+Beta_true <- c(-1, -1, 1, -0.5, 0.5, 0.2, -0.2, rep(0, p - 6))
+Delta_true <- c(-1, 1, 0, 0, -1, 0, 0, 0.5, -0.25, rep(0, p-8))
+
+## Generate responses
+mu_true <- as.vector(X \%*\% Beta_true)
+sig_true <- exp(as.vector(X \%*\% Delta_true))
+Y <- rnorm(n, mean = mu_true, sd = sig_true)
+
+## Create outliers (7.5\% of the data, which is arguably extreme)
+om <- 0.075
+out <- rbinom(n, 1, om)
+Y[out==1] <- Y[out==1] + rnorm(sum(out == 1), 1, sd = 12)
+
+hist(Y, breaks = 20)
+
+
+# Fit gamma divergence double linear models
+make_mu_formula <- paste0("response ~" , paste0("X", 1:p, collapse = " + ")) \%>\%
+formula
+make_sigma_formula <- paste0("~" , paste0("X", 1:p, collapse = " + ")) \%>\%
+formula
+
+## Select the gamma tuning parameter via the H-score
+# Note the below could parallelized if desired to make it even faster
+gamma_set <- c(1e-6, seq(0.025, 1, by=0.025))
+L <- length(gamma_set)
+H <- c()
+for(l in 1:L) {
+    cw_gamma <- gamma_set[l]
+    fit <- gddlm(mu_formula = make_mu_formula,
+                 sigma_formula = make_sigma_formula,
+                 data = data.frame(response = Y, X[,-1]),
+                 gamma_tuning = cw_gamma)
+
+   H[l] <- fit$Hscore
 }
+
+plot(H ~ gamma_set)
+gamma_opt <- gamma_set[which.min(H)] #' Pick minimum
+gamma_opt
+
+fit_gddlmHscore <- gddlm(mu_formula = make_mu_formula, #' Psi-divergence
+sigma_formula = make_sigma_formula,
+data = data.frame(response = Y, X[,-1]),
+gamma_tuning = gamma_opt)
+
+
+# Demonstration of some of the functions available in the package
+coef.gddlm(fit_gddlmHscore)
+coef.gddlm(fit_gddlmHscore, type = "sigma")
+
+fitted.gddlm(fit_gddlmHscore, type = "sigma")
+residuals.gddlm(fit_gddlmHscore, type = "pearson") \%>\%
+hist(breaks = 20)
+
+vcov.gddlm(fit_gddlmHscore)
+vcov.gddlm(fit_gddlmHscore, type = "sigma")
+
+
+
+# Fitting some other methods to double linear models
+fit_lmls <- gam(list(make_mu_formula, make_sigma_formula), #' Non-robust approach
+data = data.frame(response = Y, X[,-1]),
+family = gaulss(),
+method = "ML")
+
+fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula), #' Psi-divergence. Note this takes the longest by far...
+data = data.frame(response = Y, X[,-1]),
+family = "N",
+robust = TRUE)
+
+
+## Asses performance
+Beta_est <- data.frame(truevalue = Beta_true,
+lmls = fit_lmls$coefficients[1:ncol(X)],
+gammaHscore = fit_gddlmHscore$mu_coefficients,
+psidiv = fit_psidiv$coefficients[1:ncol(X)])
+
+Delta_est <- data.frame(truevalue = Delta_true,
+lmls = fit_lmls$coefficients[-(1:ncol(X))],
+gammaHscore = fit_gddlmHscore$sigma_coefficients,
+psidiv = fit_psidiv$coefficients[-(1:ncol(X))])
+
+
+Beta_est
+Beta_est \%>\% #' Bias averaged across coefficients (note only one dataset!)
+mutate(across(-truevalue, ~ .x - truevalue)) \%>\%
+select(-truevalue) \%>\%
+colMeans
+
+Beta_est \%>\%
+mutate(across(-truevalue, ~ (.x - truevalue)^2)) \%>\%
+select(-truevalue) \%>\%
+colSums #' Frobenius norm between estimate and true coefficients (not only one dataset!)
+
+Delta_est
+Delta_est \%>\% #' Bias averaged across coefficients (not only one dataset!)
+mutate(across(-truevalue, ~ .x - truevalue)) \%>\%
+select(-truevalue) \%>\%
+colMeans
+
+Delta_est \%>\%
+mutate(across(-truevalue, ~ (.x - truevalue)^2)) \%>\%
+select(-truevalue) \%>\%
+colSums #' Frobenius norm between estimate and true coefficients (not only one dataset!)
+}
+
 }
 \author{
 Francis K.C. Hui \href{mailto:francis.hui@anu.edu.au}{francis.hui@anu.edu.au}
