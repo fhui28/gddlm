@@ -2,27 +2,35 @@ Package: gddlm
 Title: Robust double linear models using gamma divergence
 Version: 0.1
 Date: 2025-07-01
-Authors@R: c(person(given = c("Francis", "K.C."),
-                        family = "Hui",
-                        role = c("aut", "cre"),
-                        email = "francis.hui@anu.edu.au",
-                        comment = c(ORCID = "0000-0003-0765-3533")),
-                 person(given = "Shonosuke",
-                        family = "Sugusawa",
-                        role = "aut",comment = c(ORCID = "0000-0002-9495-4280"))
-                        )
-Description: gddlm is designed to be a computationally fast (at least at the time of development!) method for robust double linear models based on the gamma divergence i.e., modeling the mean and (log of the) standard deviation in linear models assuming normally distributedd errors. The package works by applying the gamma divergence to the log-likelihood function of a double linear model to produce a new loss function (hence the name gddlm, which stands for gamma divergence double linear models) that is design to be produce inferences for the covariate effects on the mean and standard deviation that are robust to outliers. 
-License: GPL (>= 3)
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+Authors@R: c(
+    person(c("Francis", "K.C."), "Hui", , "francis.hui@anu.edu.au", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-0765-3533")),
+    person("Shonosuke", "Sugusawa", role = "aut",
+           comment = c(ORCID = "0000-0002-9495-4280"))
+  )
+Description: gddlm is designed to be a computationally fast (at least at
+    the time of development!) method for robust double linear models based
+    on the gamma divergence i.e., modeling the mean and (log of the)
+    standard deviation in linear models assuming normally distributedd
+    errors. The package works by applying the gamma divergence to the
+    log-likelihood function of a double linear model to produce a new loss
+    function (hence the name gddlm, which stands for gamma divergence
+    double linear models) that is design to be produce inferences for the
+    covariate effects on the mean and standard deviation that are robust
+    to outliers.
+License: MIT + file LICENSE
+URL: https://github.com/fhui28/gddlm
+BugReports: https://github.com/fhui28/gddlm/issues
 Imports: 
     Matrix,
     mgcv,
     stats
 Suggests:
     spelling,
+    testthat (>= 3.0.0),
     tidyverse
+Config/testthat/edition: 3
+Encoding: UTF-8
 Language: en-US
-URL: https://github.com/fhui28/gddlm
-BugReports: https://github.com/fhui28/gddlm/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
