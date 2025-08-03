@@ -138,6 +138,7 @@ hist(breaks = 20)
 vcov.gddlm(fit_gddlmHscore)
 vcov.gddlm(fit_gddlmHscore, type = "sigma")
 
+simulate(fit_gddlmHscore, nsim = 10)
 
 
 # Fitting some other methods to double linear models
