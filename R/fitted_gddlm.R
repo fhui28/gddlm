@@ -3,7 +3,7 @@
 #' @description
 #' `r lifecycle::badge("experimental")`
 #'
-#' Extracts fitted values corresponding to either the mean or the log standard deviation part of the fitted robust double linear model. 
+#' Extracts fitted values corresponding to either the mean or the log standard deviation part of the fitted robust double linear model.
 #'
 #'
 #' @param object A fitted `gddlm` object.
@@ -22,22 +22,22 @@
 #'
 #' @export
 #' @md
-fitted.gddlm <- function(object, 
-                         type = "mu", 
+fitted.gddlm <- function(object,
+                         type = "mu",
                          ...) {
-    
+
     if(!inherits(object, "gddlm"))
         stop("model must be of class \"gddlm\".")
-    
+
     type <- match.arg(type, choices = c("mu", "sigma"))
-    
+
     if(type %in% c("mu")) {
         res <- object$mu_fitted
         }
     if(type %in% c("sigma")) {
         res <- object$sigma_fitted
         }
-    
+
     return(res)
     }
 
