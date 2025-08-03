@@ -33,6 +33,9 @@ gddlm(
 An object of class \code{gddlm} with the following components:
 \itemize{
 \item \code{call} The matched call.
+\item \code{mu_formula} As per input argument.
+\item \code{sigma_formula} As per input argument.
+\item \code{model} The model frame containing all variables needed for the double linear model fit.
 \item \code{mu_coefficients} The estimated coefficients for the mean part of the double linear model.
 \item \code{sigma_coefficients} The estimated coefficients for the log standard deviation part of the double linear model.
 \item \code{mu_fitted} The fitted values for the mean in the double linear model.
@@ -40,7 +43,7 @@ An object of class \code{gddlm} with the following components:
 \item \code{raw_residuals} The raw residuals from the double linear model, which is the difference between the response and the fitted values for the mean.
 #' \item \code{pearson_residuals} The Pearson residuals from the double linear model, which is the raw residuals divided by the fitted values for the standard deviation.
 \item \code{final_weights} The final weights from the MM algorithm. The weights sum to the total number of observations in the data. Weights comparably less than 1 indicate that the observation is down-weighted in the estimation process i.e., is considered more likely to be an outlying observation in the double linear model.
-\item \code{gamma_tuning} The gamma tuning parameter used in the estimation process.
+\item \code{gamma_tuning} As per input argument.
 \item \code{gamma_divergence} The value of the gamma divergence at convergence.
 \item \code{Hscore} The Hyvarinen score (H-score) of the double linear model. This is a measure which can be used to select the tuning parameter \code{gamma_tuning}, when comparing across difference \code{gdam} fits. The H-score calculation is based on the proposal of \href{https://doi.org/10.3390/e23091147}{Sugusawa and Yonekura, 2021}.
 \item \code{V_mu_coefficients} The estimated covariance (inverse Fisher information) matrix for the coefficients corresponding to the mean part of the double linear model.
@@ -119,6 +122,8 @@ gamma_tuning = gamma_opt)
 
 
 # Demonstration of some of the functions available in the package
+fit_gddlmHscore
+
 coef.gddlm(fit_gddlmHscore)
 coef.gddlm(fit_gddlmHscore, type = "sigma")
 

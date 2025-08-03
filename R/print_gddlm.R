@@ -26,7 +26,7 @@ print.gddlm <- function(x,
     if(!inherits(x, "gddlm"))
         stop("model must be of class \"gddlm\".")
 
-    cat("Double linear model fitting using gamma divergence with gamma =",
+    cat("Double linear model fitted using gamma divergence with gamma =",
         x$gamma_tuning,
         "\n")
 
