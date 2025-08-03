@@ -52,7 +52,7 @@
 #' library(mvtnorm)
 #'
 #' # Simulation setting and data generation
-#' set.seed(082025)
+#' set.seed(072025)
 #' n <- 250
 #' p <- 10
 #' H <- abs(outer(1:p, 1:p, "-"))
@@ -69,7 +69,7 @@
 #' ## Create outliers (7.5% of the data, which is arguably extreme)
 #' om <- 0.05
 #' out <- rbinom(n, 1, om)
-#' Y[out==1] <- Y[out==1] + rnorm(sum(out == 1), 1, sd = 12)
+#' Y[out==1] <- Y[out==1] + rnorm(sum(out == 1), 1, sd = 8)
 #'
 #' hist(Y, breaks = 20)
 #'
