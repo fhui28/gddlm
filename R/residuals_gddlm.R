@@ -21,20 +21,21 @@
 #'
 #' @export
 #' @md
-residuals.gddlm <- function(object, 
-                            type = "deviance", 
+residuals.gddlm <- function(object,
+                            type = "deviance",
                             ...) {
+
     if(!inherits(object, "gddlm"))
         stop("model must be of class \"gddlm\".")
-    
+
     type <- match.arg(type, choices = c("response", "deviance", "pearson", "working"))
-    
+
     if(type %in% c("response", "working")) {
         res <- object$raw_residuals
         }
     if(type %in% c("pearson", "deviance")) {
         res <- object$pearson_residuals
         }
-    
+
     return(res)
     }
