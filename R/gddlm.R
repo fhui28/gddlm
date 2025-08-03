@@ -124,6 +124,9 @@
 #'
 #' simulate(fit_gddlmHscore, nsim = 10)
 #'
+#' predict(fit_gddlmHscore, predictor = "mu", se.fit = TRUE)
+#' predict(fit_gddlmHscore, predictor = "sigma", se.fit = TRUE)
+#'
 #'
 #' # Fitting some other methods to double linear models
 #' fit_lmls <- gam(list(make_mu_formula, make_sigma_formula), #' Non-robust approach
