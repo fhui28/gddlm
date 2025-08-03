@@ -66,7 +66,7 @@ library(mvtnorm)
 
 # Simulation setting and data generation
 set.seed(082025)
-n <- 200
+n <- 250
 p <- 10
 H <- abs(outer(1:p, 1:p, "-"))
 H <- 0.8^H
@@ -80,7 +80,7 @@ sig_true <- exp(as.vector(X \%*\% Delta_true))
 Y <- rnorm(n, mean = mu_true, sd = sig_true)
 
 ## Create outliers (7.5\% of the data, which is arguably extreme)
-om <- 0.075
+om <- 0.05
 out <- rbinom(n, 1, om)
 Y[out==1] <- Y[out==1] + rnorm(sum(out == 1), 1, sd = 12)
 
@@ -137,7 +137,8 @@ data = data.frame(response = Y, X[,-1]),
 family = gaulss(),
 method = "ML")
 
-fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula), #' Psi-divergence. Note this takes the longest by far...
+fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula),
+#' Psi-divergence. Note this takes the longest by far...
 data = data.frame(response = Y, X[,-1]),
 family = "N",
 robust = TRUE)

@@ -3,6 +3,7 @@
 S3method(coef,gddlm)
 S3method(fitted,gddlm)
 S3method(fitted,values.gddlm)
+S3method(print,gddlm)
 S3method(residuals,gddlm)
 S3method(vcov,gddlm)
 export(gddlm)

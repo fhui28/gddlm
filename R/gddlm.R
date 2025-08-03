@@ -121,7 +121,8 @@
 #' family = gaulss(),
 #' method = "ML")
 #'
-#' fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula), #' Psi-divergence. Note this takes the longest by far...
+#' fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula),
+#' #' Psi-divergence. Note this takes the longest by far...
 #' data = data.frame(response = Y, X[,-1]),
 #' family = "N",
 #' robust = TRUE)
