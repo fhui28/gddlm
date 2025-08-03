@@ -110,6 +110,8 @@
 #'
 #' summary(fit_gddlmHscore)
 #'
+#' appraise(fit_gddlmHscore)
+#'
 #' coef.gddlm(fit_gddlmHscore)
 #' coef.gddlm(fit_gddlmHscore, type = "sigma")
 #'
