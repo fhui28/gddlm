@@ -108,6 +108,8 @@
 #' # Demonstration of some of the functions available in the package
 #' fit_gddlmHscore
 #'
+#' summary(fit_gddlmHscore)
+#'
 #' coef.gddlm(fit_gddlmHscore)
 #' coef.gddlm(fit_gddlmHscore, type = "sigma")
 #'
