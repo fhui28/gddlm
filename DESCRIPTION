@@ -22,6 +22,9 @@ License: MIT + file LICENSE
 URL: https://github.com/fhui28/gddlm
 BugReports: https://github.com/fhui28/gddlm/issues
 Imports: 
+    colorspace,
+    ggplot2,
+    gratia,
     Matrix,
     mgcv,
     stats
