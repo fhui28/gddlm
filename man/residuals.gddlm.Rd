@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{A fitted \code{gddlm} object.}
 
-\item{type}{The type of residuals to compute. Options are "response", "deviance", "pearson", or "working".}
+\item{type}{The type of residuals to compute. Options are \code{response}, \code{deviance}, \code{pearson}, or \code{working}.}
 
 \item{...}{Currently not used.}
 }
@@ -19,7 +19,7 @@ A vector of residuals.
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 
-Computes residuals from a fitted \code{gddlm} object. The residuals can be of different types: "response" corresponds to the raw residuals, "deviance" corresponds to the deviance residuals (note these are slightly ad-hoc as the concept of deviance itself is not clearly defined in the case of gamma divergence; here the deviance residual is computed assuming normally distributed errors, and so it is equivalent to Pearson residuals), "pearson" corresponds to the Pearson residuals, and "working" corresponds to the working residuals (which in this case is equivalent to the raw response residuals).
+Computes residuals from a fitted \code{gddlm} object. The residuals can be of different types: \code{response} corresponds to the raw residuals, \code{deviance} corresponds to the deviance residuals (note these are slightly ad-hoc as the concept of deviance itself is not clearly defined in the case of gamma divergence; here the deviance residual is computed assuming normally distributed errors, and so \strong{it is equivalent to Pearson residuals}), \code{pearson} corresponds to the Pearson residuals, and \code{working} corresponds to the working residuals (which in this case is equivalent to the raw response residuals).
 }
 \examples{
 \dontrun{

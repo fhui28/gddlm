@@ -7,7 +7,7 @@
 #'
 #'
 #' @param object A fitted `gddlm` object.
-#' @param type Which component to extract. Options are "mu", or "sigma".
+#' @param type Which component to extract. Options are `mu`, or `sigma`.
 #' @param ... Currently not used.
 #'
 #' @return A vector of fitted values

@@ -14,7 +14,7 @@
 \arguments{
 \item{object}{A fitted \code{gddlm} object.}
 
-\item{type}{Which component to extract. Options are "mu", or "sigma".}
+\item{type}{Which component to extract. Options are \code{mu}, or \code{sigma}.}
 
 \item{...}{Currently not used.}
 }
