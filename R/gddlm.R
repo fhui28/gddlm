@@ -279,7 +279,7 @@ gddlm <- function(mu_formula,
     ##-----------------------
     C <- ( (1 + gamma_tuning)^(-1/2) * (2*pi*sig^2)^(-gamma_tuning/2) )^(gamma_tuning / (1 + gamma_tuning))
     dens <- dnorm(Y, mean = mu, sd = sig)
-    term1 <- dens^(gamma_tuning) * 2*(gamma_tuning * (Y - mu)^2 - sig^2) / ( sig^2 * C) * dens
+    term1 <- dens^(gamma_tuning) * 2*(gamma_tuning * (Y - mu)^2 - sig^2) / ( sig^2 * C)
     term2 <- dens^(2*gamma_tuning) * (Y - mu)^2 / ( sig^2 * C^2)
     Hscore <- mean(term1 + term2)
 
