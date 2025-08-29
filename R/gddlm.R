@@ -13,7 +13,7 @@
 #' @param data A data frame containing the response and covariates used in \code{mu_formula} and \code{sigma_formula}.
 #' @param gamma_tuning A positive tuning parameter for the gamma divergence, and typically less than 1 for fitting robust double linear models. The closer this value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in [mgcv::gam()] with the [mgcv::gaulss()] family, or in the [lmls::lmls()] function.
 #' @param max_iteration The maximum number of iterations for the MM algorithm. Default is 1000.
-#' @param tol The tolerance for convergence of the MM algorithm. Default is 1e-6.
+#' @param tol The tolerance for convergence of the MM algorithm. Default is 1e-4.
 #' @param dampening A two element vector that can be used to dampen the starting values of the coefficients in the mean and standard deviation parts of the double linear model. By default, the function obtains starting values from a non-robust double linear model fit, and it is possible these might be poor starting values e.g., the magnitudes of the coefficients might be too large and the MM algorithm subsequently struggles. To counter this, dampening values less than one can be used to "dampen" or reduce the magnitudes of these starting values, which may help to improve convergence. The first element in the vector controls the mean part, while the second element controls the standard deviation part of the double linear model. Defaults to c(1, 1), which corresponds to no dampening.
 #'
 #'
@@ -192,7 +192,7 @@ gddlm <- function(mu_formula,
                   data,
                   gamma_tuning = 0.1,
                   max_iteration = 1e3,
-                  tol = 1e-6,
+                  tol = 1e-4,
                   dampening = c(1,1)) {
 
     n <- nrow(data)
@@ -279,8 +279,8 @@ gddlm <- function(mu_formula,
     ##-----------------------
     C <- ( (1 + gamma_tuning)^(-1/2) * (2*pi*sig^2)^(-gamma_tuning/2) )^(gamma_tuning / (1 + gamma_tuning))
     dens <- dnorm(Y, mean = mu, sd = sig)
-    term1 <- dens^(gamma_tuning) * 2*(gamma_tuning * (Y - mu)^2 - sig^2) / ( sig^2 * C)
-    term2 <- dens^(2*gamma_tuning) * (Y - mu)^2 / ( sig^2 * C^2)
+    term1 <- dens^(gamma_tuning) * 2*(gamma_tuning * (Y - mu)^2 - sig^2) / ( sig^4 * C)
+    term2 <- dens^(2*gamma_tuning) * (Y - mu)^2 / ( sig^4 * C^2)
     Hscore <- mean(term1 + term2)
 
     dens <- dnorm(Y, mean = mu, sd = sig)

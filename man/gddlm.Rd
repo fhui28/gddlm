@@ -10,7 +10,7 @@ gddlm(
   data,
   gamma_tuning = 0.1,
   max_iteration = 1000,
-  tol = 1e-06,
+  tol = 1e-04,
   dampening = c(1, 1)
 )
 }
@@ -68,11 +68,11 @@ library(mgcv)
 library(mvtnorm)
 
 # Simulation setting and data generation
-set.seed(072025)
+set.seed(092025)
 n <- 250
 p <- 10
 H <- abs(outer(1:p, 1:p, "-"))
-H <- 0.8^H
+H <- 0.75^H
 X <- cbind(1, rmvnorm(n, sigma = H))
 Beta_true <- c(-1, -1, 1, -0.5, 0.5, 0.2, -0.2, rep(0, p - 6))
 Delta_true <- c(-1, 1, 0, 0, -1, 0, 0, 0.5, -0.25, rep(0, p-8))
@@ -82,10 +82,10 @@ mu_true <- as.vector(X \%*\% Beta_true)
 sig_true <- exp(as.vector(X \%*\% Delta_true))
 Y <- rnorm(n, mean = mu_true, sd = sig_true)
 
-## Create outliers (7.5\% of the data, which is arguably extreme)
+## Create outliers
 om <- 0.05
 out <- rbinom(n, 1, om)
-Y[out==1] <- Y[out==1] + rnorm(sum(out == 1), 1, sd = 8)
+Y[out==1] <- Y[out==1] + rnorm(sum(out == 1), 1, sd = 10)
 
 hist(Y, breaks = 20)
 
@@ -145,6 +145,11 @@ predict(fit_gddlmHscore, predictor = "sigma", se.fit = TRUE)
 
 
 # Fitting some other methods to double linear models
+fit_gddlmgamma01 <- gddlm(mu_formula = make_mu_formula,
+sigma_formula = make_sigma_formula,
+data = data.frame(response = Y, X[,-1]),
+gamma_tuning = 0.1)
+
 fit_lmls <- gam(list(make_mu_formula, make_sigma_formula), #' Non-robust approach
 data = data.frame(response = Y, X[,-1]),
 family = gaulss(),
@@ -160,11 +165,13 @@ robust = TRUE)
 ## Asses performance
 Beta_est <- data.frame(truevalue = Beta_true,
 lmls = fit_lmls$coefficients[1:ncol(X)],
+gamma01 = fit_gddlmgamma01$mu_coefficients,
 gammaHscore = fit_gddlmHscore$mu_coefficients,
 psidiv = fit_psidiv$coefficients[1:ncol(X)])
 
 Delta_est <- data.frame(truevalue = Delta_true,
 lmls = fit_lmls$coefficients[-(1:ncol(X))],
+gamma01 = fit_gddlmgamma01$sigma_coefficients,
 gammaHscore = fit_gddlmHscore$sigma_coefficients,
 psidiv = fit_psidiv$coefficients[-(1:ncol(X))])
 
