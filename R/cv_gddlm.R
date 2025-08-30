@@ -24,7 +24,7 @@
 #' @return An object of class `cv_gddlm` with the following components:
 #' \itemize{
 #' \item \code{call} The matched call.
-#' \item \code{gamma_set} The candidate values of \eqn{gamma} supplied by the user.
+#' \item \code{gamma_seq} The candidate values of \eqn{gamma} supplied by the user.
 #' \item \code{gamma_optimal} The optimal value of \eqn{gamma} selected via cross-validation (the value with the lowest median cross-validation error i.e., predictive deviance, across the folds).
 #' \item \code{all_CV} A matrix of the cross-validation errors for each fold (rows) and each candidate value of \eqn{gamma} (columns).
 #' \item \code{median_CV} The median cross-validation error i.e., predictive deviance. across the folds for each candidate value of \eqn{gamma}.
@@ -42,7 +42,11 @@
 #' @export
 #'
 #' @importFrom doParallel registerDoParallel
+#' @importFrom ggplot2 ggplot geom_point geom_line theme_bw labs aes
+#' @importFrom parallel detectCores
 #' @importFrom foreach foreach %dopar% %do%
+#' @importFrom rlang .data
+#' @importFrom stats median
 #' @md
 cv_gddlm <- function(mu_formula,
                      sigma_formula,
@@ -95,12 +99,12 @@ cv_gddlm <- function(mu_formula,
                              trace = FALSE,
                              ...)
 
-                test_mu <- predict(fit,
+                test_mu <- predict.gddlm(fit,
                                    newdata = data[sel_test,],
                                    predictor = "mu",
                                    type = "response",
                                    se.fit = FALSE)
-                test_sigma <- predict(fit,
+                test_sigma <- predict.gddlm(fit,
                                       newdata = data[sel_test,],
                                       predictor = "sigma",
                                       type = "response",
@@ -139,7 +143,7 @@ cv_gddlm <- function(mu_formula,
             }
         }
 
-    #' # Perform cross-validation (parallel version)
+        #' # Perform cross-validation (parallel version)
     if(doparallel) {
         compute_cv_error_fn <- function(fold) {
             sel_train <- which(fold_index != fold)
@@ -155,12 +159,12 @@ cv_gddlm <- function(mu_formula,
                              trace = FALSE,
                              ...)
 
-                test_mu <- predict(fit,
+                test_mu <- predict.gddlm(fit,
                                    newdata = data[sel_test,],
                                    predictor = "mu",
                                    type = "response",
                                    se.fit = FALSE)
-                test_sigma <- predict(fit,
+                test_sigma <- predict.gddlm(fit,
                                       newdata = data[sel_test,],
                                       predictor = "sigma",
                                       type = "response",
@@ -197,15 +201,15 @@ cv_gddlm <- function(mu_formula,
 
     set.seed(NULL)
     out <- list(call = match.call(),
-                gamma_set = gamma_seq,
+                gamma_seq = gamma_seq,
                 gamma_optimal = gamma_seq[which.min(apply(CV_error, 2, median))],
                 all_CV = CV_error,
                 median_CV = apply(CV_error, 2, median),
                 foldid = fold_index)
     if(plotit) {
-        p <- ggplot(data.frame(gamma_set = out$gamma_set,
+        p <- ggplot(data.frame(gamma_seq = out$gamma_seq,
                                median_cv = out$median_CV),
-                    aes(x = gamma_set, y = median_cv)) +
+                    aes(x = .data$gamma_seq, y = .data$median_cv)) +
             geom_point() +
             geom_line() +
             labs(x = expression(gamma), y = "Median CV Error") +

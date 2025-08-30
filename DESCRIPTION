@@ -29,6 +29,7 @@ Imports:
     gratia,
     Matrix,
     mgcv,
+    rlang,
     stats
 Suggests:
     spelling,

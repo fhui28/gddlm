@@ -48,7 +48,7 @@ cv_gddlm(
 An object of class \code{cv_gddlm} with the following components:
 \itemize{
 \item \code{call} The matched call.
-\item \code{gamma_set} The candidate values of \eqn{gamma} supplied by the user.
+\item \code{gamma_seq} The candidate values of \eqn{gamma} supplied by the user.
 \item \code{gamma_optimal} The optimal value of \eqn{gamma} selected via cross-validation (the value with the lowest median cross-validation error i.e., predictive deviance, across the folds).
 \item \code{all_CV} A matrix of the cross-validation errors for each fold (rows) and each candidate value of \eqn{gamma} (columns).
 \item \code{median_CV} The median cross-validation error i.e., predictive deviance. across the folds for each candidate value of \eqn{gamma}.
