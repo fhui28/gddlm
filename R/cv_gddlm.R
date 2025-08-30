@@ -203,13 +203,14 @@ cv_gddlm <- function(mu_formula,
                 median_CV = apply(CV_error, 2, median),
                 foldid = fold_index)
     if(plotit) {
-        ggplot(data.frame(gamma_set = out$gamma_set,
-                          median_cv = out$median_CV),
-               aes(x = gamma_set, y = median_cv)) +
+        p <- ggplot(data.frame(gamma_set = out$gamma_set,
+                               median_cv = out$median_CV),
+                    aes(x = gamma_set, y = median_cv)) +
             geom_point() +
             geom_line() +
             labs(x = expression(gamma), y = "Median CV Error") +
             theme_bw()
+        print(p)
         }
 
     class(out) <- "cv_gddlm"
