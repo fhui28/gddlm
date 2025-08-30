@@ -77,8 +77,7 @@ H <- abs(outer(1:p, 1:p, "-"))
 H <- 0.75^H
 X <- cbind(1, rmvnorm(n, sigma = H))
 Beta_true <- c(-1, -1, 1, -0.5, 0.5, 0.2, -0.2, rep(0, p - 6))
-Delta_true <- c(-1, 1, 0, 0, -1, 0, 0, 0.5, -0.25, rep(0, p-8))
-
+Delta_true <- c(0.5, 0.5, 0, 0, -0.5, 0, 0, 0.25, -0.25, rep(0, p - 8))
 ## Generate responses
 mu_true <- as.vector(X \%*\% Beta_true)
 sig_true <- exp(as.vector(X \%*\% Delta_true))
