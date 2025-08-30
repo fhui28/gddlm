@@ -23,6 +23,8 @@ URL: https://github.com/fhui28/gddlm
 BugReports: https://github.com/fhui28/gddlm/issues
 Imports: 
     colorspace,
+    doparallel,
+    foreach,
     ggplot2,
     gratia,
     Matrix,
