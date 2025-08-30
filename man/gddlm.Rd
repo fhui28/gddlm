@@ -98,30 +98,15 @@ formula
 make_sigma_formula <- paste0("~" , paste0("X", 1:p, collapse = " + ")) \%>\%
 formula
 
-## Select the gamma tuning parameter via the H-score
-# Note the below could parallelized if desired to make it even faster
-gamma_set <- c(1e-6, seq(0.025, 1, by=0.025))
-L <- length(gamma_set)
-H <- c()
-for(l in 1:L) {
-    cw_gamma <- gamma_set[l]
-    fit <- gddlm(mu_formula = make_mu_formula,
-                 sigma_formula = make_sigma_formula,
-                 data = data.frame(response = Y, X[,-1]),
-                 gamma_tuning = cw_gamma)
-
-   H[l] <- fit$Hscore
-}
-
-plot(H ~ gamma_set)
-gamma_opt <- gamma_set[which.min(H)] #' Pick minimum
-gamma_opt
+## Select the gamma tuning parameter via cross-validation
+runcv <- cv_gddlm(mu_formula = make_mu_formula,
+sigma_formula = make_sigma_formula,
+data = data.frame(response = Y, X[,-1]))
 
 fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
 data = data.frame(response = Y, X[,-1]),
-gamma_tuning = gamma_opt)
-
+gamma_tuning = runcv$gamma_optimal)
 
 # Demonstration of some of the functions available in the package
 fit_gddglm_choosegamma
@@ -167,8 +152,8 @@ data = data.frame(response = Y, X[,-1]),
 family = gaulss(),
 method = "ML")
 
-fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula),
 #' Psi-divergence. Note this takes the longest by far...
+fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula),
 data = data.frame(response = Y, X[,-1]),
 family = "N",
 robust = TRUE)
