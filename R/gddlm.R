@@ -10,15 +10,16 @@
 #'
 #' @param mu_formula A double-sided formula describing how the response is regressed against the covariates in the mean part of the double linear model.
 #' @param sigma_formula A single-sided formula describing how the log of the standard deviation is regressed against the covariates in the double linear model.
-#' @param data A data frame containing the response and covariates used in \code{mu_formula} and \code{sigma_formula}.
+#' @param data A data frame containing the response and covariates used in `mu_formula` and `sigma_formula`.
 #' @param gamma_tuning A positive tuning parameter for the gamma divergence, and typically less than 1 for fitting robust double linear models. The closer this value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in [mgcv::gam()] with the [mgcv::gaulss()] family, or in the [lmls::lmls()] function.
 #' @param max_iteration The maximum number of iterations for the MM algorithm. Default is 1000.
 #' @param tol The tolerance for convergence of the MM algorithm. Default is 1e-4.
 #' @param dampening A two element vector that can be used to dampen the starting values of the coefficients in the mean and standard deviation parts of the double linear model. By default, the function obtains starting values from a non-robust double linear model fit, and it is possible these might be poor starting values e.g., the magnitudes of the coefficients might be too large and the MM algorithm subsequently struggles. To counter this, dampening values less than one can be used to "dampen" or reduce the magnitudes of these starting values, which may help to improve convergence. The first element in the vector controls the mean part, while the second element controls the standard deviation part of the double linear model. Defaults to c(1, 1), which corresponds to no dampening.
+#' @param trace Should the function print out trace information during the MM algorithm? Default is `TRUE`.
 #'
 #'
 #' @details
-#' See manuscript for more details (currently in preparation).
+#' Please see manuscript for more details (currently in preparation).
 #'
 #' @return An object of class `gddlm` with the following components:
 #' \itemize{
@@ -35,7 +36,6 @@
 #' \item \code{final_weights} The final weights from the MM algorithm. The weights sum to the total number of observations in the data. Weights comparably less than 1 indicate that the observation is down-weighted in the estimation process i.e., is considered more likely to be an outlying observation in the double linear model.
 #' \item \code{gamma_tuning} As per input argument.
 #' \item \code{gamma_divergence} The value of the gamma divergence at convergence.
-#' \item \code{Hscore} The Hyvarinen score (H-score) of the double linear model. This is a measure which can be used to select the tuning parameter `gamma_tuning`, when comparing across difference `gdam` fits. The H-score calculation is based on the proposal of [Sugusawa and Yonekura, 2021](https://doi.org/10.3390/e23091147).
 #' \item \code{V_mu_coefficients} The estimated covariance (inverse Fisher information) matrix for the coefficients corresponding to the mean part of the double linear model.
 #' \item \code{V_sigma_coefficients} The estimated covariance (inverse Fisher information) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
 #' }
@@ -69,7 +69,7 @@
 #' ## Create outliers
 #' om <- 0.05
 #' out <- rbinom(n, 1, om)
-#' Y[out==1] <- Y[out==1] + rnorm(sum(out == 1), 1, sd = 10)
+#' Y[out==1] <- Y[out==1] + 50
 #'
 #' hist(Y, breaks = 20)
 #'
@@ -99,40 +99,50 @@
 #' gamma_opt <- gamma_set[which.min(H)] #' Pick minimum
 #' gamma_opt
 #'
-#' fit_gddlmHscore <- gddlm(mu_formula = make_mu_formula, #' Psi-divergence
+#' fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 #' sigma_formula = make_sigma_formula,
 #' data = data.frame(response = Y, X[,-1]),
 #' gamma_tuning = gamma_opt)
 #'
 #'
 #' # Demonstration of some of the functions available in the package
-#' fit_gddlmHscore
+#' fit_gddglm_choosegamma
 #'
-#' summary(fit_gddlmHscore)
+#' summary(fit_gddglm_choosegamma)
 #'
-#' appraise(fit_gddlmHscore)
+#' appraise(fit_gddglm_choosegamma)
 #'
-#' coef.gddlm(fit_gddlmHscore)
-#' coef.gddlm(fit_gddlmHscore, type = "sigma")
+#' coef.gddlm(fit_gddglm_choosegamma)
+#' coef.gddlm(fit_gddglm_choosegamma, type = "sigma")
 #'
-#' fitted.gddlm(fit_gddlmHscore, type = "sigma")
-#' residuals.gddlm(fit_gddlmHscore, type = "pearson") %>%
+#' fitted.gddlm(fit_gddglm_choosegamma, type = "sigma")
+#' residuals.gddlm(fit_gddglm_choosegamma, type = "pearson") %>%
 #' hist(breaks = 20)
 #'
-#' vcov.gddlm(fit_gddlmHscore)
-#' vcov.gddlm(fit_gddlmHscore, type = "sigma")
+#' vcov.gddlm(fit_gddglm_choosegamma)
+#' vcov.gddlm(fit_gddglm_choosegamma, type = "sigma")
 #'
-#' simulate(fit_gddlmHscore, nsim = 10)
+#' simulate(fit_gddglm_choosegamma, nsim = 10)
 #'
-#' predict(fit_gddlmHscore, predictor = "mu", se.fit = TRUE)
-#' predict(fit_gddlmHscore, predictor = "sigma", se.fit = TRUE)
+#' predict(fit_gddglm_choosegamma, predictor = "mu", se.fit = TRUE)
+#' predict(fit_gddglm_choosegamma, predictor = "sigma", se.fit = TRUE)
 #'
 #'
-#' # Fitting some other methods to double linear models
+#' # Fitting some other double linear models
 #' fit_gddlmgamma01 <- gddlm(mu_formula = make_mu_formula,
 #' sigma_formula = make_sigma_formula,
 #' data = data.frame(response = Y, X[,-1]),
 #' gamma_tuning = 0.1)
+#'
+#' fit_gddlmgamma02 <- gddlm(mu_formula = make_mu_formula,
+#' sigma_formula = make_sigma_formula,
+#' data = data.frame(response = Y, X[,-1]),
+#' gamma_tuning = 0.2)
+#'
+#' fit_gddlmgamma05 <- gddlm(mu_formula = make_mu_formula,
+#' sigma_formula = make_sigma_formula,
+#' data = data.frame(response = Y, X[,-1]),
+#' gamma_tuning = 0.5)
 #'
 #' fit_lmls <- gam(list(make_mu_formula, make_sigma_formula), #' Non-robust approach
 #' data = data.frame(response = Y, X[,-1]),
@@ -150,13 +160,17 @@
 #' Beta_est <- data.frame(truevalue = Beta_true,
 #' lmls = fit_lmls$coefficients[1:ncol(X)],
 #' gamma01 = fit_gddlmgamma01$mu_coefficients,
-#' gammaHscore = fit_gddlmHscore$mu_coefficients,
+#' gamma02 = fit_gddlmgamma02$mu_coefficients,
+#' gamma05 = fit_gddlmgamma05$mu_coefficients,
+#' choosegamma = fit_gddglm_choosegamma$mu_coefficients,
 #' psidiv = fit_psidiv$coefficients[1:ncol(X)])
 #'
 #' Delta_est <- data.frame(truevalue = Delta_true,
 #' lmls = fit_lmls$coefficients[-(1:ncol(X))],
 #' gamma01 = fit_gddlmgamma01$sigma_coefficients,
-#' gammaHscore = fit_gddlmHscore$sigma_coefficients,
+#' gamma02 = fit_gddlmgamma02$sigma_coefficients,
+#' gamma05 = fit_gddlmgamma05$sigma_coefficients,
+#' choosegamma = fit_gddglm_choosegamma$sigma_coefficients,
 #' psidiv = fit_psidiv$coefficients[-(1:ncol(X))])
 #'
 #'
@@ -193,7 +207,8 @@ gddlm <- function(mu_formula,
                   gamma_tuning = 0.1,
                   max_iteration = 1e3,
                   tol = 1e-4,
-                  dampening = c(1,1)) {
+                  dampening = c(1,1),
+                  trace = FALSE) {
 
     n <- nrow(data)
     fake_gam_mu <- mgcv::gam(mu_formula, data = data, family = gaussian())
@@ -245,7 +260,7 @@ gddlm <- function(mu_formula,
         # convergence check
         new_gamma_div <- n / gamma_tuning * log(mean(dens^gamma_tuning)) + gamma_tuning / (2 * (1 + gamma_tuning)) * sum(log(sig^2))
         dd <- new_gamma_div - old_gamma_divergence
-        if(r %% 10 == 0)
+        if(r %% 10 == 0 & trace == TRUE)
             message("Iteration: ", r, "\t New gamma divergence: ", round(new_gamma_div, 4),
                     "\t Old gamma divergence: ", round(old_gamma_divergence, 4),
                     "\t Difference: ", round(dd, 4))
@@ -277,11 +292,11 @@ gddlm <- function(mu_formula,
     ##-----------------------
     #' # Final wrap up
     ##-----------------------
-    C <- ( (1 + gamma_tuning)^(-1/2) * (2*pi*sig^2)^(-gamma_tuning/2) )^(gamma_tuning / (1 + gamma_tuning))
-    dens <- dnorm(Y, mean = mu, sd = sig)
-    term1 <- dens^(gamma_tuning) * 2*(gamma_tuning * (Y - mu)^2 - sig^2) / ( sig^4 * C)
-    term2 <- dens^(2*gamma_tuning) * (Y - mu)^2 / ( sig^4 * C^2)
-    Hscore <- mean(term1 + term2)
+    # C <- ( (1 + gamma_tuning)^(-1/2) * (2*pi*sig^2)^(-gamma_tuning/2) )^(gamma_tuning / (1 + gamma_tuning))
+    # dens <- dnorm(Y, mean = mu, sd = sig)
+    # term1 <- dens^(gamma_tuning) * 2*(gamma_tuning * (Y - mu)^2 - sig^2) / ( sig^4 * C)
+    # term2 <- dens^(2*gamma_tuning) * (Y - mu)^2 / ( sig^4 * C^2)
+    # Hscore <- mean(term1 + term2)
 
     dens <- dnorm(Y, mean = mu, sd = sig)
     ww <- dens^gamma_tuning / mean(dens^gamma_tuning)
@@ -299,7 +314,6 @@ gddlm <- function(mu_formula,
                 final_weights = ww,
                 gamma_tuning = gamma_tuning,
                 gamma_divergence = new_gamma_div,
-                Hscore = Hscore,
                 V_mu_coefficients = solve(-Hess_mu_coefficients),
                 V_sigma_coefficients = solve(-Hess_sigma_coefficients))
     names(out$mu_coefficients) <- colnames(mu_X)
