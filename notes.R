@@ -31,11 +31,19 @@ make_mu_formula <- paste0("response ~" , paste0("X", 1:p, collapse = " + ")) %>%
 make_sigma_formula <- paste0("~" , paste0("X", 1:p, collapse = " + ")) %>% formula
 
 
-fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
+fit_gddglm_choosegamma1 <- gddlm(mu_formula = make_mu_formula,
                                 sigma_formula = make_sigma_formula,
                                 data = data.frame(response = Y, X[,-1]),
-                                gamma_tuning = 0.15)
+                                gamma_tuning = runcv$gamma_optimal)
 
+fit_gddglm_choosegamma2 <- gddlm(mu_formula = make_mu_formula,
+                                 sigma_formula = make_sigma_formula,
+                                 data = data.frame(response = Y, X[,-1]),
+                                 gamma_tuning = runcv$gamma_optimal,
+                                 update_version = 2)
+
+fit_gddglm_choosegamma1
+fit_gddglm_choosegamma2
 
 
 function() {
