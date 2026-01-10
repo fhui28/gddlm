@@ -18,7 +18,7 @@ Description: gddlm is designed to be a computationally fast (at least at
     double linear models) that is design to be produce inferences for the
     covariate effects on the mean and standard deviation that are robust
     to outliers.
-License: MIT + file LICENSE
+License: GPL (>= 3)
 URL: https://github.com/fhui28/gddlm
 BugReports: https://github.com/fhui28/gddlm/issues
 Imports: 
