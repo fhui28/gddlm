@@ -52,7 +52,7 @@
 #' library(mvtnorm)
 #'
 #' # Simulation setting and data generation
-#' set.seed(092025)
+#' set.seed(012026)
 #' n <- 250
 #' p <- 10
 #' H <- abs(outer(1:p, 1:p, "-"))
@@ -212,7 +212,9 @@ gddlm <- function(mu_formula,
     ##-----------------------
     #' # initial values
     ##-----------------------
-    fit_start <- gam(list(mu_formula, sigma_formula), data = data, family = gaulss(), method = "ML")
+    fit_start <- gam(list(mu_formula, sigma_formula),
+                     data = data,
+                     family = gaulss(), method = "ML")
     mu_coefficients <- fit_start$coefficients[1:ncol(mu_X)]^dampening[1]
     sigma_coefficients <- fit_start$coefficients[-(1:ncol(mu_X))]^dampening[2]
     old_gamma_divergence <- -Inf
@@ -230,6 +232,17 @@ gddlm <- function(mu_formula,
         dens <- dnorm(Y, mean = mu, sd = sig)
         ww <- dens^gamma_tuning / mean(dens^gamma_tuning)
 
+        # UPDATING METHOD VERSION 2 -- *CURRENTLY DOES NOT WORK AS GAULSS FITTING IS NOT WEIGHTED*
+        # fit_update <- gam(list(mu_formula, sigma_formula),
+        #                   data = data,
+        #                   weights = ww,
+        #                   family = gaulss(),
+        #                   method = "ML")
+        # mu_coefficients <- fit_update$coefficients[1:ncol(mu_X)]
+        # sigma_coefficients <- fit_update$coefficients[-(1:ncol(mu_X))]
+
+
+        # UPDATING METHOD VERSION 1
         # update mu_coefficients
         mu_coefficients <- c( solve(crossprod(mu_X, ww * mu_X / sig^2)) %*% crossprod(mu_X, ww * Y / sig^2) )
 
