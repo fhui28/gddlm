@@ -26,7 +26,7 @@ cv_gddlm(
 
 \item{data}{A data frame containing the response and covariates used in \code{mu_formula} and \code{sigma_formula}.}
 
-\item{gamma_seq}{A numeric vector of candidate values for the tuning parameter \eqn{gamma}.}
+\item{gamma_seq}{A numeric vector of candidate values for the tuning parameter \eqn{\gamma}.}
 
 \item{nfolds}{The number of folds to use in the cross-validation. Default is 10.}
 
@@ -36,7 +36,7 @@ cv_gddlm(
 
 \item{ratio_threshold}{A numeric value that should be greater than 1. To classify how many observations in the test set are to be treated as outliers, the procedure finds the largest ratio of the sorted mean gamma divergence density weights that exceeds this threshold. All observations prior to this are then deemed as outliers in that test fold. Default is 2.}
 
-\item{plotit}{Should a plot be produced showing the cross-validation error against the candidate values of \eqn{gamma}? Defaults to \code{FALSE}.}
+\item{plotit}{Should a plot be produced showing the cross-validation error against the candidate values of \eqn{\gamma}? Defaults to \code{FALSE}.}
 
 \item{doparallel}{Should parallel computing be used to perform the cross-validation? Defaults to \code{FALSE}.}
 
@@ -48,20 +48,20 @@ cv_gddlm(
 An object of class \code{cv_gddlm} with the following components:
 \itemize{
 \item \code{call} The matched call.
-\item \code{gamma_seq} The candidate values of \eqn{gamma} supplied by the user.
-\item \code{gamma_optimal} The optimal value of \eqn{gamma} selected via cross-validation (the value with the lowest median cross-validation error i.e., predictive deviance, across the folds).
-\item \code{all_CV} A matrix of the cross-validation errors for each fold (rows) and each candidate value of \eqn{gamma} (columns).
-\item \code{median_CV} The median cross-validation error i.e., predictive deviance. across the folds for each candidate value of \eqn{gamma}.
+\item \code{gamma_seq} The candidate values of \eqn{\gamma} supplied by the user.
+\item \code{gamma_optimal} The optimal value of \eqn{\gamma} selected via cross-validation (the value with the lowest median cross-validation error i.e., predictive deviance, across the folds).
+\item \code{all_CV} A matrix of the cross-validation errors for each fold (rows) and each candidate value of \eqn{\gamma} (columns).
+\item \code{median_CV} The median cross-validation error i.e., predictive deviance. across the folds for each candidate value of \eqn{\gamma}.
 \item \code{foldid} The fold assignment for each observation.
 }
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 
-Performs K-fold cross-validation for gddlm to select the optimal tuning parameter \eqn{gamma} for the gamma divergence. The closer the (chosen) value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in \code{\link[mgcv:gam]{mgcv::gam()}} with the \code{\link[mgcv:gaulss]{mgcv::gaulss()}} family, or in the \code{\link[lmls:lmls]{lmls::lmls()}} function.
+Performs K-fold cross-validation for gddlm to select the optimal tuning parameter \eqn{\gamma} for the gamma divergence. The closer the (chosen) value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in \code{\link[mgcv:gam]{mgcv::gam()}} with the \code{\link[mgcv:gaulss]{mgcv::gaulss()}} family, or in the \code{\link[lmls:lmls]{lmls::lmls()}} function.
 }
 \details{
-The deviance is used as the measure of predictive accuracy in the cross-validation procedure. The function (can) produces a plot and a return a value for the optimal \eqn{gamma}. Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
+The deviance is used as the measure of predictive accuracy in the cross-validation procedure. The function (can) produces a plot and a return a value for the optimal \eqn{\gamma}. Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
 }
 \examples{
 \dontrun{
