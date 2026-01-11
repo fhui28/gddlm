@@ -6,7 +6,7 @@ library(mvtnorm)
 
 # Simulation setting and data generation
 set.seed(012026)
-n <- 250
+n <- 500
 p <- 10
 H <- abs(outer(1:p, 1:p, "-"))
 H <- 0.75^H
@@ -19,7 +19,7 @@ sig_true <- exp(as.vector(X %*% Delta_true))
 Y <- rnorm(n, mean = mu_true, sd = sig_true)
 
 ## Create outliers
-om <- 0
+om <- 0.1
 out <- rbinom(n, 1, om)
 Y[out==1] <- Y[out==1] + 50
 
@@ -33,21 +33,16 @@ make_sigma_formula <- paste0("~" , paste0("X", 1:p, collapse = " + ")) %>% formu
 
 fit_nonrobust <- gam(list(make_mu_formula, make_sigma_formula),
                      data = data.frame(response = Y, X[,-1]),
-                     H = diag(x = 25, nrow = length(Beta_true) + length((Delta_true))),
                      family = gaulss())
 
 fit_gddglm <- gddlm(mu_formula = make_mu_formula,
                     sigma_formula = make_sigma_formula,
                     data = data.frame(response = Y, X[,-1]),
-                    mu_sp = 25,
-                    sigma_sp = 25,
-                    gamma_tuning = 1e-12,
-                    control = list(trace = TRUE))
+                    gamma_tuning = 0.1)
 
 
 fit_nonrobust$coefficients
-fit_gddglm
-
+summary(fit_gddglm)
 
 
 #' *NOTE*: The comparison below does not work because for Gaussian responses, mgcv ends up scaling the H matrix by sig2, while I have set up gddlm not to do this...
@@ -73,9 +68,9 @@ function() {
     mu_formula = make_mu_formula
     sigma_formula = make_sigma_formula
     data = data.frame(response = Y, X[,-1])
-    gamma_tuning = 0.2
-    max_iteration = 1e3
-    tol = 1e-4
-    dampening = c(1,1)
-    trace = FALSE
+    gamma_tuning = 1e-12
+    mu_bar_lambda = 0.2
+    sigma_bar_lambda = 0.2
+    control = list(max_iteration = 1e3, tol = 1e-5, dampening = c(1,1), trace = FALSE)
+    bar_control = list(tol = 1e-4, max_iteration = 1e3, round_eps = 1e-6)
     }
