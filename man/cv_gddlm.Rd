@@ -32,7 +32,7 @@ cv_gddlm(
 
 \item{fold_seed}{An optional value to set the random seed for the fold assignment. Default is \code{NULL} i.e., random seed.}
 
-\item{foldid}{An optional vector of values between 1 and \code{nfolds} identifying which fold each observation is in. If supplied, then this overrides the \code{nfolds} arugment. Otherwise it defaults to \code{NULL}, in which case the folds are randomly assigned.}
+\item{foldid}{An optional vector of values between 1 and \code{nfolds} identifying which fold each observation is in. If supplied, then this overrides the \code{nfolds} argument. Otherwise it defaults to \code{NULL}, in which case the folds are randomly assigned.}
 
 \item{ratio_threshold}{A numeric value that should be greater than 1. To classify how many observations in the test set are to be treated as outliers, the procedure finds the largest ratio of the sorted mean gamma divergence density weights that exceeds this threshold. All observations prior to this are then deemed as outliers in that test fold. Default is 2.}
 
@@ -42,7 +42,7 @@ cv_gddlm(
 
 \item{num_cores}{If \code{do_parallel = TRUE}, then this argument controls the number of cores used. Defaults to \code{NULL}, in which case it is set to \code{parallel::detectCores() - 2}.}
 
-\item{...}{Other arguments to supply to the main \code{\link[=gddlm]{gddlm()}} function e.g., \code{max_iteration} \code{tolerance}, etc.}
+\item{...}{Other arguments to supply to the main \code{\link[=gddlm]{gddlm()}} function e.g., \code{control} etc.}
 }
 \value{
 An object of class \code{cv_gddlm} with the following components:

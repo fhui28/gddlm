@@ -11,12 +11,12 @@
 #' @param gamma_seq A numeric vector of candidate values for the tuning parameter \eqn{gamma}.
 #' @param nfolds The number of folds to use in the cross-validation. Default is 10.
 #' @param fold_seed An optional value to set the random seed for the fold assignment. Default is \code{NULL} i.e., random seed.
-#' @param foldid An optional vector of values between 1 and `nfolds` identifying which fold each observation is in. If supplied, then this overrides the `nfolds` arugment. Otherwise it defaults to `NULL`, in which case the folds are randomly assigned.
+#' @param foldid An optional vector of values between 1 and `nfolds` identifying which fold each observation is in. If supplied, then this overrides the `nfolds` argument. Otherwise it defaults to `NULL`, in which case the folds are randomly assigned.
 #' @param ratio_threshold A numeric value that should be greater than 1. To classify how many observations in the test set are to be treated as outliers, the procedure finds the largest ratio of the sorted mean gamma divergence density weights that exceeds this threshold. All observations prior to this are then deemed as outliers in that test fold. Default is 2.
 #' @param plotit Should a plot be produced showing the cross-validation error against the candidate values of \eqn{gamma}? Defaults to `FALSE`.
 #' @param doparallel Should parallel computing be used to perform the cross-validation? Defaults to `FALSE`.
 #' @param num_cores If `do_parallel = TRUE`, then this argument controls the number of cores used. Defaults to \code{NULL}, in which case it is set to `parallel::detectCores() - 2`.
-#' @param ... Other arguments to supply to the main [gddlm()] function e.g., `max_iteration` `tolerance`, etc.
+#' @param ... Other arguments to supply to the main [gddlm()] function e.g., `control` etc.
 #'
 #' @details
 #' The deviance is used as the measure of predictive accuracy in the cross-validation procedure. The function (can) produces a plot and a return a value for the optimal \eqn{gamma}. Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
@@ -96,7 +96,6 @@ cv_gddlm <- function(mu_formula,
                              sigma_formula = sigma_formula,
                              data = data[sel_train, ],
                              gamma_tuning = cw_gamma,
-                             trace = FALSE,
                              ...)
 
                 test_mu <- predict.gddlm(fit,
@@ -156,7 +155,6 @@ cv_gddlm <- function(mu_formula,
                              sigma_formula = sigma_formula,
                              data = data[sel_train, ],
                              gamma_tuning = cw_gamma,
-                             trace = FALSE,
                              ...)
 
                 test_mu <- predict.gddlm(fit,
