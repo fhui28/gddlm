@@ -12,10 +12,15 @@
 #' @param sigma_formula A single-sided formula describing how the log of the standard deviation is regressed against the covariates in the double linear model.
 #' @param data A data frame containing the response and covariates used in `mu_formula` and `sigma_formula`.
 #' @param gamma_tuning A positive tuning parameter for the gamma divergence, and typically less than 1 for fitting robust double linear models. The closer this value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in [mgcv::gam()] with the [mgcv::gaulss()] family, or in the [lmls::lmls()] function.
-#' @param max_iteration The maximum number of iterations for the MM algorithm. Default is 1000.
-#' @param tol The tolerance for convergence of the MM algorithm. Default is 1e-4.
-#' @param dampening A two element vector that can be used to dampen the starting values of the coefficients in the mean and standard deviation parts of the double linear model. By default, the function obtains starting values from a non-robust double linear model fit, and it is possible these might be poor starting values e.g., the magnitudes of the coefficients might be too large and the MM algorithm subsequently struggles. To counter this, dampening values less than one can be used to "dampen" or reduce the magnitudes of these starting values, which may help to improve convergence. The first element in the vector controls the mean part, while the second element controls the standard deviation part of the double linear model. Defaults to c(1, 1), which corresponds to no dampening.
-#' @param trace Should the function print out trace information during the MM algorithm? Default is `TRUE`.
+#' @param mu_sp Smoothing parameter for the mean part of the double linear model if any smooth terms are included in `mu_formula`. By default, this is set to NULL, which means that smoothing parameters are estimated as part of the fitting process. If a numeric value is provided, this is used as a fixed smoothing parameter instead.
+#' @param sigma_sp Smoothing parameter for the log standard deviation part of the double linear model if any smooth terms are included in `sigma_formula`. Same behavior as `mu_sp`
+#' @param control A list of control parameters for fitting the gamma divergence double linear model. The list can contain the following elements:
+#' \itemize{
+#' \item \code{max_iteration}: The maximum number of iterations for the MM algorithm.
+#' \item \code{tol}: The tolerance for convergence of the MM algorithm.
+#' \item \code{dampening}: A two element vector that can be used to dampen the starting values of the coefficients in the mean and standard deviation parts of the double linear model. By default, the function obtains starting values from a non-robust double linear model fit, and it is possible these might be poor starting values e.g., the magnitudes of the coefficients might be too large and the MM algorithm subsequently struggles. To counter this, dampening values less than one can be used to "dampen" or reduce the magnitudes of these starting values, which may help to improve convergence. The first element in the vector controls the mean part, while the second element controls the standard deviation part of the double linear model. Defaults to c(1, 1), which corresponds to no dampening.
+#' \item \code{trace} Should the function print out trace information during the MM algorithm?
+#' }
 #'
 #'
 #' @details
@@ -182,6 +187,7 @@
 #' }
 #'
 #' @export gddlm
+#' @importFrom Matrix Diagonal
 #' @importFrom mgcv gam model.matrix.gam gaulss
 #' @importFrom stats dnorm gaussian model.frame model.response update.formula
 #' @md
@@ -189,10 +195,21 @@ gddlm <- function(mu_formula,
                   sigma_formula,
                   data,
                   gamma_tuning = 0.1,
-                  max_iteration = 1e3,
-                  tol = 1e-4,
-                  dampening = c(1,1),
-                  trace = FALSE) {
+                  mu_sp = 0,
+                  sigma_sp = 0,
+                  control = list(max_iteration = 1e3, tol = 1e-4, dampening = c(1,1), trace = FALSE)) {
+
+    ##-----------------------
+    #' # Checks and balances
+    ##-----------------------
+    if(is.null(control$max_iteration))
+        control$max_iteration <- 1e3
+    if(is.null(control$tol))
+        control$tol <- 1e-4
+    if(is.null(control$dampening))
+        control$dampening <- c(1,1)
+    if(is.null(control$trace))
+        control$trace <- FALSE
 
     n <- nrow(data)
     fake_gam_mu <- mgcv::gam(mu_formula, data = data, family = gaussian())
@@ -215,15 +232,15 @@ gddlm <- function(mu_formula,
     fit_start <- gam(list(mu_formula, sigma_formula),
                      data = data,
                      family = gaulss(), method = "ML")
-    mu_coefficients <- fit_start$coefficients[1:ncol(mu_X)]^dampening[1]
-    sigma_coefficients <- fit_start$coefficients[-(1:ncol(mu_X))]^dampening[2]
+    mu_coefficients <- fit_start$coefficients[1:ncol(mu_X)]^control$dampening[1]
+    sigma_coefficients <- fit_start$coefficients[-(1:ncol(mu_X))]^control$dampening[2]
     old_gamma_divergence <- -Inf
 
 
     ##-----------------------
     #' # Run MM-algorithm
     ##-----------------------
-    for(r in 1:max_iteration) {
+    for(r in 1:control$max_iteration) {
         # weight
         mu_coefficients_old <- mu_coefficients
         sigma_coefficients_old <- sigma_coefficients
@@ -244,26 +261,30 @@ gddlm <- function(mu_formula,
 
         # UPDATING METHOD VERSION 1
         # update mu_coefficients
-        mu_coefficients <- c( solve(crossprod(mu_X, ww * mu_X / sig^2)) %*% crossprod(mu_X, ww * Y / sig^2) )
+        S_mu <- Matrix::Diagonal(x = mu_sp, ncol(mu_X))
+        mu_coefficients <- as.vector(solve(crossprod(mu_X, ww * mu_X / sig^2) + S_mu) %*% crossprod(mu_X, ww * Y / sig^2))
 
         # update sigma_coefficients -- Using Fisher scoring here instead of straight up Newton-Raphson
+        S_sigma <- Matrix::Diagonal(x = sigma_sp, ncol(sig_X))
         resid <- Y - as.vector(mu_X %*% mu_coefficients)
         #Hess <- (-2)*crossprod(X, ww * resid^2 * X / sig^2)
-        expFisherinfo <- 2 * crossprod(sig_X, ww * sig_X)
+        expFisherinfo <- 2 * crossprod(sig_X, ww * sig_X) + S_sigma
         Grad <- apply(ww * resid^2 * sig_X / sig^2 - sig_X / (1 + gamma_tuning), 2, sum)
         #sigma_coefficients <- sigma_coefficients - as.vector(solve(Hess) %*% Grad)
         sigma_coefficients <- sigma_coefficients + as.vector(solve(expFisherinfo) %*% Grad)
 
         # convergence check
         new_gamma_div <- n / gamma_tuning * log(mean(dens^gamma_tuning)) + gamma_tuning / (2 * (1 + gamma_tuning)) * sum(log(sig^2))
+        make_quad_penalty <- 0.5 * as.vector(t(mu_coefficients) %*% S_mu %*% mu_coefficients) + 0.5 * as.vector(t(sigma_coefficients) %*% S_sigma %*% sigma_coefficients)
+        new_gamma_div <- new_gamma_div - make_quad_penalty
         dd <- new_gamma_div - old_gamma_divergence
-        if(r %% 10 == 0 & trace == TRUE)
+        if(r %% 10 == 0 & control$trace == TRUE)
             message("Iteration: ", r, "\t New gamma divergence: ", round(new_gamma_div, 4),
                     "\t Old gamma divergence: ", round(old_gamma_divergence, 4),
                     "\t Difference: ", round(dd, 4))
 
         old_gamma_divergence <- new_gamma_div
-        if(dd < tol)
+        if(dd < control$tol)
             break
         }
 
@@ -278,12 +299,12 @@ gddlm <- function(mu_formula,
     Z <- (Y - mu) / sig^2
     A <- apply(mu_X * ww * Z, 2, sum)
     a <- ww * (gamma_tuning * Z^2 - 1 / sig^2)
-    Hess_mu_coefficients <- (-1) * gamma_tuning / (n * S^2) * tcrossprod(A) + (1/S) * crossprod(mu_X, a * mu_X)
+    Hess_mu_coefficients <- (-1) * gamma_tuning / (n * S^2) * tcrossprod(A) + (1/S) * crossprod(mu_X, a * mu_X) - S_mu
 
     Z <- (Y - mu)^2 / sig^2 - 1
     a <- ww * (0.5 * gamma_tuning * Z^2 - (Z + 1))
     A <- apply(sig_X * ww * Z, 2, sum)
-    Hess_sigma_coefficients <- (-1) * gamma_tuning / (n * S^2) * tcrossprod(A) + (2 / S) * crossprod(sig_X, a * sig_X)
+    Hess_sigma_coefficients <- (-1) * gamma_tuning / (n * S^2) * tcrossprod(A) + (2 / S) * crossprod(sig_X, a * sig_X) - S_sigma
 
 
     ##-----------------------
@@ -301,6 +322,8 @@ gddlm <- function(mu_formula,
     out <- list(call = match.call(),
                 mu_formula = mu_formula,
                 sigma_formula = sigma_formula,
+                mu_sp = mu_sp,
+                sigma_sp = sigma_sp,
                 model = fake_gam_lmls$model,
                 mu_coefficients = as.vector(mu_coefficients),
                 sigma_coefficients = as.vector(sigma_coefficients),

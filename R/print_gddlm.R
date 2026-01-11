@@ -30,6 +30,11 @@ print.gddlm <- function(x,
         x$gamma_tuning,
         "\n")
 
+    if(!is.null(x$mu_sp))
+        cat("Smoothing parameter applied to coefficients in mu component:", x$mu_sp, "\n")
+    if(!is.null(x$sigma_sp))
+        cat("Smoothing parameter applied to coefficients in sigma component:", x$sigma_sp, "\n")
+
     cat("\nCall:",
         paste(deparse(x$call), sep = "\n", collapse = "\n"),
         "\n\n",

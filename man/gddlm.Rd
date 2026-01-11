@@ -9,10 +9,9 @@ gddlm(
   sigma_formula,
   data,
   gamma_tuning = 0.1,
-  max_iteration = 1000,
-  tol = 1e-04,
-  dampening = c(1, 1),
-  trace = FALSE
+  mu_sp = 0,
+  sigma_sp = 0,
+  control = list(max_iteration = 1000, tol = 1e-04, dampening = c(1, 1), trace = FALSE)
 )
 }
 \arguments{
@@ -24,13 +23,17 @@ gddlm(
 
 \item{gamma_tuning}{A positive tuning parameter for the gamma divergence, and typically less than 1 for fitting robust double linear models. The closer this value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in \code{\link[mgcv:gam]{mgcv::gam()}} with the \code{\link[mgcv:gaulss]{mgcv::gaulss()}} family, or in the \code{\link[lmls:lmls]{lmls::lmls()}} function.}
 
-\item{max_iteration}{The maximum number of iterations for the MM algorithm. Default is 1000.}
+\item{mu_sp}{Smoothing parameter for the mean part of the double linear model if any smooth terms are included in \code{mu_formula}. By default, this is set to NULL, which means that smoothing parameters are estimated as part of the fitting process. If a numeric value is provided, this is used as a fixed smoothing parameter instead.}
 
-\item{tol}{The tolerance for convergence of the MM algorithm. Default is 1e-4.}
+\item{sigma_sp}{Smoothing parameter for the log standard deviation part of the double linear model if any smooth terms are included in \code{sigma_formula}. Same behavior as \code{mu_sp}}
 
-\item{dampening}{A two element vector that can be used to dampen the starting values of the coefficients in the mean and standard deviation parts of the double linear model. By default, the function obtains starting values from a non-robust double linear model fit, and it is possible these might be poor starting values e.g., the magnitudes of the coefficients might be too large and the MM algorithm subsequently struggles. To counter this, dampening values less than one can be used to "dampen" or reduce the magnitudes of these starting values, which may help to improve convergence. The first element in the vector controls the mean part, while the second element controls the standard deviation part of the double linear model. Defaults to c(1, 1), which corresponds to no dampening.}
-
-\item{trace}{Should the function print out trace information during the MM algorithm? Default is \code{TRUE}.}
+\item{control}{A list of control parameters for fitting the gamma divergence double linear model. The list can contain the following elements:
+\itemize{
+\item \code{max_iteration}: The maximum number of iterations for the MM algorithm.
+\item \code{tol}: The tolerance for convergence of the MM algorithm.
+\item \code{dampening}: A two element vector that can be used to dampen the starting values of the coefficients in the mean and standard deviation parts of the double linear model. By default, the function obtains starting values from a non-robust double linear model fit, and it is possible these might be poor starting values e.g., the magnitudes of the coefficients might be too large and the MM algorithm subsequently struggles. To counter this, dampening values less than one can be used to "dampen" or reduce the magnitudes of these starting values, which may help to improve convergence. The first element in the vector controls the mean part, while the second element controls the standard deviation part of the double linear model. Defaults to c(1, 1), which corresponds to no dampening.
+\item \code{trace} Should the function print out trace information during the MM algorithm?
+}}
 }
 \value{
 An object of class \code{gddlm} with the following components:
@@ -70,7 +73,7 @@ library(mgcv)
 library(mvtnorm)
 
 # Simulation setting and data generation
-set.seed(092025)
+set.seed(012026)
 n <- 250
 p <- 10
 H <- abs(outer(1:p, 1:p, "-"))
