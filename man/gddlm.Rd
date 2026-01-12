@@ -9,9 +9,7 @@ gddlm(
   sigma_formula,
   data,
   gamma_tuning = 0.1,
-  mu_sp = 0,
-  sigma_sp = 0,
-  control = list(max_iteration = 1000, tol = 1e-04, dampening = c(1, 1), trace = FALSE)
+  control = list(max_iteration = 1000, tol = 1e-05, dampening = c(1, 1), trace = FALSE)
 )
 }
 \arguments{
@@ -22,10 +20,6 @@ gddlm(
 \item{data}{A data frame containing the response and covariates used in \code{mu_formula} and \code{sigma_formula}.}
 
 \item{gamma_tuning}{A positive tuning parameter for the gamma divergence, and typically less than 1 for fitting robust double linear models. The closer this value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in \code{\link[mgcv:gam]{mgcv::gam()}} with the \code{\link[mgcv:gaulss]{mgcv::gaulss()}} family, or in the \code{\link[lmls:lmls]{lmls::lmls()}} function.}
-
-\item{mu_sp}{Smoothing parameter for the mean part of the double linear model if any smooth terms are included in \code{mu_formula}. By default, this is set to NULL, which means that smoothing parameters are estimated as part of the fitting process. If a numeric value is provided, this is used as a fixed smoothing parameter instead.}
-
-\item{sigma_sp}{Smoothing parameter for the log standard deviation part of the double linear model if any smooth terms are included in \code{sigma_formula}. Same behavior as \code{mu_sp}}
 
 \item{control}{A list of control parameters for fitting the gamma divergence double linear model. The list can contain the following elements:
 \itemize{
@@ -58,7 +52,7 @@ An object of class \code{gddlm} with the following components:
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 
-This function fits a robust double linear model, where both the mean (mu) and the log of the standard deviation (sigma) are modeled as a function of predictors, based on applying the gamma divergence to the associated normally distributed likelihood function (hence the name gddlm, which stands for gamma divergence double linear models).
+This function fits a robust double linear model, where both the mean (mu) and the log of the standard deviation (sigma) are modeled as a function of predictors, based on applying the \href{https://www.mdpi.com/1099-4300/19/11/608}{gamma divergence} to the associated normally distributed likelihood function (hence the name gddlm, which stands for gamma divergence double linear models).
 
 Optimization is performed via a minorization-maximization (MM) algorithm, while standard errors for the coefficient estimates in the mean and standard deviation are constructed based on the inverse of the observed Fisher information matrix for the gamma divergence function.
 }
