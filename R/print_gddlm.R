@@ -1,7 +1,7 @@
 #' @title Print a fitted gddlm model.
 #'
 #' @description
-#' `r lifecycle::badge("experimental")`
+#' `r lifecycle::badge("stable")`
 #'
 #' This function prints out some details of the fitted `gddlm` object in a human-readable format. This includes the tuning parameter used, the formula, estimated coefficients, and the gamma divergence.
 #'
@@ -29,11 +29,6 @@ print.gddlm <- function(x,
     cat("Double linear model fitted using gamma divergence with gamma =",
         x$gamma_tuning,
         "\n")
-
-    if(!is.null(x$mu_sp))
-        cat("Smoothing parameter applied to coefficients in mu component:", x$mu_sp, "\n")
-    if(!is.null(x$sigma_sp))
-        cat("Smoothing parameter applied to coefficients in sigma component:", x$sigma_sp, "\n")
 
     cat("\nCall:",
         paste(deparse(x$call), sep = "\n", collapse = "\n"),

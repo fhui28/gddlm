@@ -4,7 +4,7 @@
 \alias{print.gddlm}
 \title{Print a fitted gddlm model.}
 \usage{
-\method{print}{gddlm}(x, digits = max(3, getOption("digits") - 3), ...)
+print.gddlm(x, digits = max(3, getOption("digits") - 3), ...)
 }
 \arguments{
 \item{x}{A fitted \code{gddlm} object.}
@@ -14,7 +14,7 @@
 \item{...}{Currently not used.}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}}
 
 This function prints out some details of the fitted \code{gddlm} object in a human-readable format. This includes the tuning parameter used, the formula, estimated coefficients, and the gamma divergence.
 }

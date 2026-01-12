@@ -19,7 +19,9 @@
 #' @param ... Other arguments to supply to the main [gddlm()] function e.g., `control` etc.
 #'
 #' @details
-#' The deviance is used as the measure of predictive accuracy in the cross-validation procedure. The function (can) produces a plot and a return a value for the optimal \eqn{\gamma}. Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
+#' The deviance is used as the measure of predictive accuracy in the cross-validation procedure. The function (can) produces a plot and a return a value for the optimal \eqn{\gamma}.
+#'
+#' Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
 #'
 #' @return An object of class `cv_gddlm` with the following components:
 #' \itemize{

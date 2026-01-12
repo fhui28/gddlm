@@ -31,36 +31,45 @@ make_mu_formula <- paste0("response ~" , paste0("X", 1:p, collapse = " + ")) %>%
 make_sigma_formula <- paste0("~" , paste0("X", 1:p, collapse = " + ")) %>% formula
 
 
-fit_nonrobust <- gam(list(make_mu_formula, make_sigma_formula),
-                     data = data.frame(response = Y, X[,-1]),
-                     family = gaulss())
-
-fit_gddglm <- gddlm(mu_formula = make_mu_formula,
-                    sigma_formula = make_sigma_formula,
-                    data = data.frame(response = Y, X[,-1]),
-                    gamma_tuning = 0.1)
-
-
-fit_nonrobust$coefficients
-summary(fit_gddglm)
-
-
-#' *NOTE*: The comparison below does not work because for Gaussian responses, mgcv ends up scaling the H matrix by sig2, while I have set up gddlm not to do this...
-# fitlm_nonrobust <- gam(make_mu_formula,
+# fit_nonrobust <- gam(list(make_mu_formula, make_sigma_formula),
 #                      data = data.frame(response = Y, X[,-1]),
-#                      H = diag(x = 100, nrow = length(Beta_true)),
-#                      family = gaussian())
+#                      family = gaulss())
 #
-# fit_gddlm <- gddlm(mu_formula = make_mu_formula,
-#                     sigma_formula = ~1,
+# fit_gddglm <- gddlm(mu_formula = make_mu_formula,
+#                     sigma_formula = make_sigma_formula,
 #                     data = data.frame(response = Y, X[,-1]),
-#                     mu_sp = 100,
-#                     sigma_sp = 0,
-#                     gamma_tuning = 1e-12,
-#                     control = list(trace = TRUE))
+#                     gamma_tuning = 0.1)
 #
-# fitlm_nonrobust$coefficients
-# fit_gddlm$mu_coefficients
+#
+# fit_nonrobust$coefficients
+# summary(fit_gddglm)
+
+
+runcv <- cv_gddlm(mu_formula = make_mu_formula,
+                  sigma_formula = make_sigma_formula,
+                  data = data.frame(response = Y, X[,-1]))
+
+fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
+                                sigma_formula = make_sigma_formula,
+                                data = data.frame(response = Y, X[,-1]),
+                                gamma_tuning = runcv$gamma_optimal)
+
+fit_gddlm_lsa <- gddlm_lsa(object = fit_gddglm_choosegamma)
+apply(fit_gddlm_lsa$information, 2, which.min)
+fit_gddlm_lsa$mu_coefficients_path[,which.min(fit_gddlm_lsa$information$BIC)]
+fit_gddlm_lsa$sigma_coefficients_path[,which.min(fit_gddlm_lsa$information$BIC)]
+
+
+fit_gddglm_gamma0 <- gddlm(mu_formula = make_mu_formula,
+                                sigma_formula = make_sigma_formula,
+                                data = data.frame(response = Y, X[,-1]),
+                                gamma_tuning = 1e-12)
+
+fit_gddlm_gamma0_lsa <- gddlm_lsa(object = fit_gddglm_gamma0)
+apply(fit_gddlm_gamma0_lsa$information, 2, which.min)
+fit_gddlm_gamma0_lsa$mu_coefficients_path[,which.min(fit_gddlm_gamma0_lsa$information$BIC)]
+fit_gddlm_gamma0_lsa$sigma_coefficients_path[,which.min(fit_gddlm_gamma0_lsa$information$BIC)]
+
 
 
 
@@ -72,5 +81,14 @@ function() {
     mu_bar_lambda = 0.2
     sigma_bar_lambda = 0.2
     control = list(max_iteration = 1e3, tol = 1e-5, dampening = c(1,1), trace = FALSE)
-    bar_control = list(tol = 1e-4, max_iteration = 1e3, round_eps = 1e-6)
+
+
+    object = fit_gddglm_choosegamma
+    nlambda = 100
+    lambda_min_ratio = 1e-6
+    lambda = NULL
+    min_df = 0
+    num_cores = NULL
+    prior_weights = NULL
+    control = list(maxit = 1000, eps = 1e-6, round_eps = 1e-6)
     }

@@ -3,7 +3,7 @@
 #' @description
 #' `r lifecycle::badge("experimental")`
 #'
-#' This function fits a robust double linear model, where both the mean (mu) and the log of the standard deviation (sigma) are modeled as a function of predictors, based on applying the gamma divergence to the associated normally distributed likelihood function (hence the name gddlm, which stands for gamma divergence double linear models).
+#' This function fits a robust double linear model, where both the mean (mu) and the log of the standard deviation (sigma) are modeled as a function of predictors, based on applying the [gamma divergence](https://www.mdpi.com/1099-4300/19/11/608) to the associated normally distributed likelihood function (hence the name gddlm, which stands for gamma divergence double linear models).
 #'
 #' Optimization is performed via a minorization-maximization (MM) algorithm, while standard errors for the coefficient estimates in the mean and standard deviation are constructed based on the inverse of the observed Fisher information matrix for the gamma divergence function.
 #'

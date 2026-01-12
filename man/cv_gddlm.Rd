@@ -61,7 +61,9 @@ An object of class \code{cv_gddlm} with the following components:
 Performs K-fold cross-validation for gddlm to select the optimal tuning parameter \eqn{\gamma} for the gamma divergence. The closer the (chosen) value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in \code{\link[mgcv:gam]{mgcv::gam()}} with the \code{\link[mgcv:gaulss]{mgcv::gaulss()}} family, or in the \code{\link[lmls:lmls]{lmls::lmls()}} function.
 }
 \details{
-The deviance is used as the measure of predictive accuracy in the cross-validation procedure. The function (can) produces a plot and a return a value for the optimal \eqn{\gamma}. Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
+The deviance is used as the measure of predictive accuracy in the cross-validation procedure. The function (can) produces a plot and a return a value for the optimal \eqn{\gamma}.
+
+Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
 }
 \examples{
 \dontrun{
