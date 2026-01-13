@@ -49,7 +49,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' See the main `gddlm` help file for examples.
+#' TO BE DONE!
 #' }
 #'
 #'
@@ -72,7 +72,7 @@ gddlm_lsa <- function(object,
     ##-------------------
     #' # Checks and balances
     ##-------------------
-    if(class(object) != "gddlm")
+    if(!inherits(object, "gddlm"))
         stop("object must be of class 'gddlm'.")
     if(is.null(num_cores))
         num_cores <- detectCores()-2
@@ -199,6 +199,7 @@ gddlm_lsa <- function(object,
 #' @title Hidden internal function for applying the BAR penalty applied to a least squares approximation of a GDDLM
 #' @description Adapted from hidden internal function in (https://github.com/fhui28/COQUE)
 #' @return A vector of penalized estimates with the same length as \code{psihat}, with potentially one or more elements shrunk to zero.
+#' @importFrom methods as
 #' @noRd
 #' @noMd
 

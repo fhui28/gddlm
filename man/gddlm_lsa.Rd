@@ -69,7 +69,7 @@ In terms of model selection, the function computes the following information cri
 }
 \examples{
 \dontrun{
-See the main `gddlm` help file for examples.
+TO BE DONE!
 }
 
 
