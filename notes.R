@@ -122,7 +122,7 @@ rm(robgam_coef, psidiv_coef)
 
 robgam_coef <- fit_RobGam$fitG$coefficients*0.5
 psidiv_coef <- fit_psidiv$coefficients[-(1:(p+1))]
-psidiv_coef[abs(fit_psidiv$coefficients[-(1:(p+1))] / sqrt(diag(fit_psidiv$Vb))[-(1:(p+1))])] <- 0
+psidiv_coef[abs(fit_psidiv$coefficients[-(1:(p+1))] / sqrt(diag(fit_psidiv$Vb))[-(1:(p+1))]) < qnorm(0.975)] <- 0
 data.frame(
     true = Delta_true,
     gddlm_opt = fit_gddlm_choosegama_lsa$sigma_coefficients_path[,which.min(fit_gddlm_choosegama_lsa$information$BIC)],

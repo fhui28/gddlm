@@ -141,7 +141,8 @@ robust = TRUE)
 
 ## Assess performance
 psidiv_coef <- fit_psidiv$coefficients[1:(p+1)]
-psidiv_coef[abs(fit_psidiv$coefficients[1:(p+1)] / sqrt(diag(fit_psidiv$Vb))[1:(p+1)]) < qnorm(0.975)] <- 0
+psidiv_coef[abs(fit_psidiv$coefficients[1:(p+1)] /
+sqrt(diag(fit_psidiv$Vb))[1:(p+1)]) < qnorm(0.975)] <- 0
 Beta_est = data.frame(
 true = Beta_true,
 gddlm = estimates(fit_gddlm_choosegamma_lsa, lambda = "BIC")$mu_coefficients,
@@ -153,7 +154,8 @@ Beta_est
 
 
 psidiv_coef <- fit_psidiv$coefficients[-(1:(p+1))]
-psidiv_coef[abs(fit_psidiv$coefficients[-(1:(p+1))] / sqrt(diag(fit_psidiv$Vb))[-(1:(p+1))])] <- 0
+psidiv_coef[abs(fit_psidiv$coefficients[-(1:(p+1))] /
+sqrt(diag(fit_psidiv$Vb))[-(1:(p+1))]) < qnorm(0.975)] <- 0
 Delta_est = data.frame(
 true = Delta_true,
 gddlm = estimates(fit_gddlm_choosegamma_lsa, lambda = "BIC")$sigma_coefficients,
