@@ -49,7 +49,7 @@ estimates.gddlm_lsa <- function(object, lambda, ...) {
     ##-------------------
     if(!is.numeric(lambda)) {
         lambda <- match.arg(lambda, choices = c("AIC", "BIC", "EBIC", "EBIC2"))
-        sel_lambda <- which.min(object$information$ICs[,lambda])
+        sel_lambda <- which.min(object$information[,lambda])
 
         sel_mu_coefficients <- object$mu_coefficients_path[,sel_lambda]
         sel_sigma_coefficients <- object$sigma_coefficients_path[,sel_lambda]

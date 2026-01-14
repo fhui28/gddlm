@@ -131,19 +131,20 @@
 #' data = data.frame(response = Y, X[,-1]),
 #' gamma_tuning = 0.5)
 #'
-#' fit_lmls <- gam(list(make_mu_formula, make_sigma_formula), #' Non-robust approach
+#' ## Non-robust approach
+#' fit_lmls <- gam(list(make_mu_formula, make_sigma_formula),
 #' data = data.frame(response = Y, X[,-1]),
 #' family = gaulss(),
 #' method = "ML")
 #'
-#' #' Psi-divergence. Note this takes the longest by far...
+#' ## Psi-divergence. Note this takes the longest by far...
 #' fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula),
 #' data = data.frame(response = Y, X[,-1]),
 #' family = "N",
 #' robust = TRUE)
 #'
 #'
-#' ## Asses performance
+#' ## Assess performance
 #' Beta_est <- data.frame(truevalue = Beta_true,
 #' lmls = fit_lmls$coefficients[1:ncol(X)],
 #' gamma01 = fit_gddlmgamma01$mu_coefficients,
