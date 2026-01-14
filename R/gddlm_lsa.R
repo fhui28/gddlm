@@ -49,7 +49,100 @@
 #'
 #' @examples
 #' \dontrun{
-#' TO BE DONE!
+#' library(tidyverse)
+#' library(GJRM)
+#' library(gamlss.lasso)
+#' library(mgcv)
+#' library(mvtnorm)
+#'
+#' # Simulation setting and data generation
+#' set.seed(012026)
+#' n <- 500
+#' p <- 25
+#' H <- abs(outer(1:p, 1:p, "-"))
+#' H <- 0.75^H
+#' X <- cbind(1, rmvnorm(n, sigma = H))
+#' Beta_true <- c(-1, -1, 1, -0.5, 0.5, 0, 0, 0.25, rep(0, p - 7))
+#' Delta_true <- c(0.5, 0.5, 0, 0, -0.5, 0, 0, 0.25, -0.25, rep(0, p - 8))
+#' ## Generate responses
+#' mu_true <- as.vector(X %*% Beta_true)
+#' sig_true <- exp(as.vector(X %*% Delta_true))
+#' Y <- rnorm(n, mean = mu_true, sd = sig_true)
+#'
+#' ## Create outliers
+#' om <- 0.05
+#' out <- rbinom(n, 1, om)
+#' Y[out==1] <- Y[out==1] + 50
+#'
+#' hist(Y, breaks = 20)
+#'
+#'
+#' # Fit gamma divergence double linear models
+#' make_mu_formula <- paste0("response ~" , paste0("X", 1:p, collapse = " + ")) %>%
+#' formula
+#' make_sigma_formula <- paste0("~" , paste0("X", 1:p, collapse = " + ")) %>%
+#' formula
+#'
+#' ## Select the gamma tuning parameter via cross-validation
+#' runcv <- cv_gddlm(mu_formula = make_mu_formula,
+#' sigma_formula = make_sigma_formula,
+#' data = data.frame(response = Y, X[,-1]))
+#'
+#' fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
+#' sigma_formula = make_sigma_formula,
+#' data = data.frame(response = Y, X[,-1]),
+#' gamma_tuning = runcv$gamma_optimal)
+#'
+#'
+#' # Construct regularization path via least squares approximation with BAR penalty
+#' fit_gddlm_choosegamma_lsa <- gddlm_lsa(object = fit_gddglm_choosegamma)
+#'
+#' ## Example of extracting estimates based minimizing BIC
+#' estimates(fit_gddlm_choosegamma_lsa, lambda = "BIC")
+#'
+#'
+#' # Fitting some other double linear models and attempt variable selection using this...
+#' ## Non-robust double linear model with selection using the adaptive lasso
+#' dat <- data.frame(y = Y, X[,-1])
+#' fit_gamlsslasso <- gamlss::gamlss(y ~ gnet(x.vars = names(dat)[-1]),
+#' sigma.fo = ~ gnet(x.vars = names(dat)[-1]),
+#' data = dat,
+#' family = NO,
+#' i.control = glim.control(cyc=1, bf.cyc=1))
+#'
+#'
+#' ## Psi-divergence. Note this takes the longest by far...
+#' ## Then perform varable based on simple Wald-tests from the saturated model
+#' fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula),
+#' data = data.frame(response = Y, X[,-1]),
+#' family = "N",
+#' robust = TRUE)
+#'
+#'
+#' ## Assess performance
+#' psidiv_coef <- fit_psidiv$coefficients[1:(p+1)]
+#' psidiv_coef[abs(fit_psidiv$coefficients[1:(p+1)] / sqrt(diag(fit_psidiv$Vb))[1:(p+1)]) < qnorm(0.975)] <- 0
+#' Beta_est = data.frame(
+#' true = Beta_true,
+#' gddlm = estimates(fit_gddlm_choosegamma_lsa, lambda = "BIC")$mu_coefficients,
+#' psidiv = psidiv_coef,
+#' gamlss_lasso = c(NA, tail(getSmo(fit_gamlsslasso, "mu") ,1)[[1]]$beta)
+#' )
+#' rm(psidiv_coef)
+#' Beta_est
+#'
+#'
+#' psidiv_coef <- fit_psidiv$coefficients[-(1:(p+1))]
+#' psidiv_coef[abs(fit_psidiv$coefficients[-(1:(p+1))] / sqrt(diag(fit_psidiv$Vb))[-(1:(p+1))])] <- 0
+#' Delta_est = data.frame(
+#' true = Delta_true,
+#' gddlm = estimates(fit_gddlm_choosegamma_lsa, lambda = "BIC")$sigma_coefficients,
+#' psidiv = psidiv_coef,
+#' gamlss_lasso = c(NA, tail(getSmo(fit_gamlsslasso, "sigma") ,1)[[1]]$beta)
+#' )
+#' rm(psidiv_coef)
+#' Delta_est
+#'
 #' }
 #'
 #'
