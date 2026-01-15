@@ -26,7 +26,7 @@ gddlm_lsa(
 
 \item{min_df}{The minimum number of non-zero coefficients, excluding the two intercepts in the mu and sigma components, allowed in the double linear model. This is useful to supply if, when the function tries to find a appropriate lambda sequence, the user wants the maximum value of lambda to not necessarily shrink to all the penalized estimates to zero. Defaults to zero, and can take a maximum value given by \code{sum(prior_weights != 0)}.}
 
-\item{num_cores}{The regularization path is constructed via parallel computing, and this argument controls the number of cores used. Defaults to \code{NULL}, in which case it is set to \code{parallel::detectCores() - 2}.}
+\item{num_cores}{The regularization path is constructed via parallel computing, and this argument controls the number of cores used. Defaults to \code{NULL}, in which case it is set to \code{parallel::detectCores() - 2}. If the user does not wish to use parallel computing, set \code{num_cores = 1}.}
 
 \item{prior_weights}{A vector of prior weights for the BAR penalty, with length equal to the number of parameters in the model (i.e., length of \code{c(object$mu_coefficients, object$sigma_coefficients)}). Default is \code{NULL}, in which case all penalized parameters are given equal weight of 1, and the two intercepts (one for mu and one for sigma) are given weight zero (i.e., not penalized). It is strongly recommended to only set elements of \code{prior_weights} to 0 or 1, as the BAR penalty usually does not need adaptive/fractional weights for selection purposes.}
 
