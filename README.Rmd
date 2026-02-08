@@ -96,7 +96,8 @@ fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 Demonstration of some of the functions available in the package
 
 ```{r}
-fit_gddglm_choosegamma
+fit_gddglm_choosegamma %>% 
+    str
 
 summary(fit_gddglm_choosegamma)
 
