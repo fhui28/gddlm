@@ -4,7 +4,7 @@
 \alias{print.gddlm}
 \title{Print a fitted gddlm model.}
 \usage{
-print.gddlm(x, digits = max(3, getOption("digits") - 3), ...)
+\method{print}{gddlm}(x, digits = max(3, getOption("digits") - 3), ...)
 }
 \arguments{
 \item{x}{A fitted \code{gddlm} object.}

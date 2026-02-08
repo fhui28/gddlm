@@ -17,6 +17,7 @@
 #' See the main `gddlm` help file for examples.
 #' }
 #'
+#' @method print gddlm
 #' @export
 #' @md
 print.gddlm <- function(x,
