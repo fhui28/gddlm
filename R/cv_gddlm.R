@@ -68,10 +68,8 @@ cv_gddlm <- function(mu_formula,
 
     if(doparallel) {
         if(is.null(num_cores))
-            registerDoParallel(cores = detectCores() - 2)
-        if(!is.null(num_cores)) {
-            registerDoParallel(cores = num_cores)
-            }
+            num_cores <- detectCores() - 2
+        registerDoParallel(cores = num_cores)
         message("Using ", num_cores, " cores in construct regularization path.")
         }
 
