@@ -10,6 +10,7 @@ gddlm_lsa(
   lambda_min_ratio = 1e-06,
   lambda = NULL,
   min_df = 0,
+  group_indicators = NULL,
   num_cores = NULL,
   prior_weights = NULL,
   control = list(max_iteration = 1000, tol = 1e-06, round_eps = 1e-06)
@@ -25,6 +26,8 @@ gddlm_lsa(
 \item{lambda}{A user-supplied tuning parameter sequence. Note this is usually not supplied, as it is standard to have the function itself compute its own lambda sequence based on \code{nlambda} and \code{lambda_min_ratio}.}
 
 \item{min_df}{The minimum number of non-zero coefficients, excluding the two intercepts in the mu and sigma components, allowed in the double linear model. This is useful to supply if, when the function tries to find a appropriate lambda sequence, the user wants the maximum value of lambda to not necessarily shrink to all the penalized estimates to zero. Defaults to zero, and can take a maximum value given by \code{sum(prior_weights != 0)}.}
+
+\item{group_indicators}{A vector of group indicators for performing group selection. The length of this vector should be equal to the number of parameters in the model (i.e., length of \code{c(object$mu_coefficients, object$sigma_coefficients)}). If \code{group_indicators} is not \code{NULL}, then the BAR penalty will be applied in a grouped manner.}
 
 \item{num_cores}{The regularization path is constructed via parallel computing, and this argument controls the number of cores used. Defaults to \code{NULL}, in which case it is set to \code{parallel::detectCores() - 2}. If the user does not wish to use parallel computing, set \code{num_cores = 1}.}
 
@@ -57,7 +60,7 @@ Various information criteria at each point on the regularization path (see the d
 After applying \code{\link[=gddlm]{gddlm()}} to fit a robust double linear model via gamma divergence, this function constructs a regularization path for the model coefficients based on applying the \href{https://www3.stat.sinica.edu.tw/statistica/J30N2/J30N223/J30N223.html}{broken adaptive ridge or BAR penalty} to a \href{https://www.tandfonline.com/doi/abs/10.1198/016214507000000509}{least squares (quadratic) approximation} of the gamma divergence objective function. This approach is a relatively computationally efficient approach to performing joint selection on the coefficients characterizing the mean (mu) and the log of the standard deviation (sigma) of the double linear model.
 }
 \details{
-See associated manuscript (currently in revision).
+See associated manuscript (currently in preparation).
 
 In terms of model selection, the function computes the following information criteria at each point on the regularization path:
 \itemize{
