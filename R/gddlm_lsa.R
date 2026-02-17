@@ -5,6 +5,8 @@
 #'
 #' After applying [gddlm()] to fit a robust double linear model via gamma divergence, this function constructs a regularization path for the model coefficients based on applying the [broken adaptive ridge or BAR penalty](https://www3.stat.sinica.edu.tw/statistica/J30N2/J30N223/J30N223.html) to a [least squares (quadratic) approximation](https://www.tandfonline.com/doi/abs/10.1198/016214507000000509) of the gamma divergence objective function. This approach is a relatively computationally efficient approach to performing joint selection on the coefficients characterizing the mean (mu) and the log of the standard deviation (sigma) of the double linear model.
 #'
+#' Note the two intercepts in the mu and sigma components are not penalized by default.
+#'
 #' @param object An object of class `gddlm`.
 #' @param nlambda The number of tuning parameters values.
 #' @param lambda_min_ratio The smallest value for the tuning parameter lambda, as a fraction of the maximum internally-derived lambda value i.e., a value such that penalization leads to zeros for all penalized estimates.
@@ -112,15 +114,15 @@
 #' i.control = glim.control(cyc=1, bf.cyc=1))
 #'
 #'
-#' ## Psi-divergence. Note this takes the longest by far...
-#' ## Then perform varable based on simple Wald-tests from the saturated model
+#' # Psi-divergence. Note this takes the longest by far...
+#' # Then perform varable based on simple Wald-tests from the saturated model
 #' fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula),
 #' data = data.frame(response = Y, X[,-1]),
 #' family = "N",
 #' robust = TRUE)
 #'
 #'
-#' ## Assess performance
+#' # Assess performance
 #' psidiv_coef <- fit_psidiv$coefficients[1:(p+1)]
 #' psidiv_coef[abs(fit_psidiv$coefficients[1:(p+1)] /
 #' sqrt(diag(fit_psidiv$Vb))[1:(p+1)]) < qnorm(0.975)] <- 0
@@ -146,6 +148,20 @@
 #' rm(psidiv_coef)
 #' Delta_est
 #'
+#'
+#' # Demonstrating how to perform group selection with the BAR penalty
+#' # In this case, we will penalize the first ten coefficients in the mu component individually, then form a group from the remaining coefficients in mu component so that these are penalized in a collective manner.
+#' # We will apply the same approach to the sigma component.
+#' # Note this is *purely for illustrative purposes*, and in practice the groups should be formed more carefully and using with prior knowledge!
+#' fit_gddlm_choosegamma_lsa2 <- gddlm_lsa(object = fit_gddglm_choosegamma,
+#' group_indicators = c(1:10, rep(11, length(fit_gddglm_choosegamma$mu_coefficients)-10),
+#' 11 + c(1:10, rep(11, length(fit_gddglm_choosegamma$sigma_coefficients)-10))))
+#'
+#' Beta_est$gddlm_group <- estimates(fit_gddlm_choosegamma_lsa2, lambda = "BIC")$mu_coefficients
+#' Beta_est
+#'
+#' Delta_est$gddlm_group <- estimates(fit_gddlm_choosegamma_lsa2, lambda = "BIC")$sigma_coefficients
+#' Delta_est
 #' }
 #'
 #'
