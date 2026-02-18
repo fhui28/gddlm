@@ -30,7 +30,7 @@ Extracts estimates of coefficients characterizing the mean (mu) and the log of t
 \code{\link[=gddlm_lsa]{gddlm_lsa()}} fit.
 }
 \details{
-See associated manuscript (currently in revision).
+See associated manuscript (currently in preparation).
 }
 \examples{
 \dontrun{

@@ -5,11 +5,14 @@
 #'
 #' After applying [gddlm()] to fit a robust double linear model via gamma divergence, this function constructs a regularization path for the model coefficients based on applying the [broken adaptive ridge or BAR penalty](https://www3.stat.sinica.edu.tw/statistica/J30N2/J30N223/J30N223.html) to a [least squares (quadratic) approximation](https://www.tandfonline.com/doi/abs/10.1198/016214507000000509) of the gamma divergence objective function. This approach is a relatively computationally efficient approach to performing joint selection on the coefficients characterizing the mean (mu) and the log of the standard deviation (sigma) of the double linear model.
 #'
+#' Note the two intercepts in the mu and sigma components are not penalized by default.
+#'
 #' @param object An object of class `gddlm`.
 #' @param nlambda The number of tuning parameters values.
 #' @param lambda_min_ratio The smallest value for the tuning parameter lambda, as a fraction of the maximum internally-derived lambda value i.e., a value such that penalization leads to zeros for all penalized estimates.
 #' @param lambda A user-supplied tuning parameter sequence. Note this is usually not supplied, as it is standard to have the function itself compute its own lambda sequence based on `nlambda` and `lambda_min_ratio`.
 #' @param min_df The minimum number of non-zero coefficients, excluding the two intercepts in the mu and sigma components, allowed in the double linear model. This is useful to supply if, when the function tries to find a appropriate lambda sequence, the user wants the maximum value of lambda to not necessarily shrink to all the penalized estimates to zero. Defaults to zero, and can take a maximum value given by `sum(prior_weights != 0)`.
+#' @param group_indicators A vector of group indicators for performing group selection. The length of this vector should be equal to the number of parameters in the model (i.e., length of `c(object$mu_coefficients, object$sigma_coefficients)`). If `group_indicators` is not `NULL`, then the BAR penalty will be applied in a grouped manner.
 #' @param num_cores The regularization path is constructed via parallel computing, and this argument controls the number of cores used. Defaults to `NULL`, in which case it is set to `parallel::detectCores() - 2`. If the user does not wish to use parallel computing, set `num_cores = 1`.
 #' @param prior_weights A vector of prior weights for the BAR penalty, with length equal to the number of parameters in the model (i.e., length of `c(object$mu_coefficients, object$sigma_coefficients)`). Default is `NULL`, in which case all penalized parameters are given equal weight of 1, and the two intercepts (one for mu and one for sigma) are given weight zero (i.e., not penalized). It is strongly recommended to only set elements of `prior_weights` to 0 or 1, as the BAR penalty usually does not need adaptive/fractional weights for selection purposes.
 #' @param control A list containing the following elements:
@@ -21,7 +24,7 @@
 #'
 #'
 #' @details
-#' See associated manuscript (currently in revision).
+#' See associated manuscript (currently in preparation).
 #'
 #' In terms of model selection, the function computes the following information criteria at each point on the regularization path:
 #'
@@ -111,15 +114,15 @@
 #' i.control = glim.control(cyc=1, bf.cyc=1))
 #'
 #'
-#' ## Psi-divergence. Note this takes the longest by far...
-#' ## Then perform varable based on simple Wald-tests from the saturated model
+#' # Psi-divergence. Note this takes the longest by far...
+#' # Then perform varable based on simple Wald-tests from the saturated model
 #' fit_psidiv <- GJRM::gamlss(list(make_mu_formula, make_sigma_formula),
 #' data = data.frame(response = Y, X[,-1]),
 #' family = "N",
 #' robust = TRUE)
 #'
 #'
-#' ## Assess performance
+#' # Assess performance
 #' psidiv_coef <- fit_psidiv$coefficients[1:(p+1)]
 #' psidiv_coef[abs(fit_psidiv$coefficients[1:(p+1)] /
 #' sqrt(diag(fit_psidiv$Vb))[1:(p+1)]) < qnorm(0.975)] <- 0
@@ -145,6 +148,20 @@
 #' rm(psidiv_coef)
 #' Delta_est
 #'
+#'
+#' # Demonstrating how to perform group selection with the BAR penalty
+#' # In this case, we will penalize the first ten coefficients in the mu component individually, then form a group from the remaining coefficients in mu component so that these are penalized in a collective manner.
+#' # We will apply the same approach to the sigma component.
+#' # Note this is *purely for illustrative purposes*, and in practice the groups should be formed more carefully and using with prior knowledge!
+#' fit_gddlm_choosegamma_lsa2 <- gddlm_lsa(object = fit_gddglm_choosegamma,
+#' group_indicators = c(1:10, rep(11, length(fit_gddglm_choosegamma$mu_coefficients)-10),
+#' 11 + c(1:10, rep(11, length(fit_gddglm_choosegamma$sigma_coefficients)-10))))
+#'
+#' Beta_est$gddlm_group <- estimates(fit_gddlm_choosegamma_lsa2, lambda = "BIC")$mu_coefficients
+#' Beta_est
+#'
+#' Delta_est$gddlm_group <- estimates(fit_gddlm_choosegamma_lsa2, lambda = "BIC")$sigma_coefficients
+#' Delta_est
 #' }
 #'
 #'
@@ -160,6 +177,7 @@ gddlm_lsa <- function(object,
                       lambda_min_ratio = 1e-6,
                       lambda = NULL,
                       min_df = 0,
+                      group_indicators = NULL,
                       num_cores = NULL,
                       prior_weights = NULL,
                       control = list(max_iteration = 1000, tol = 1e-6, round_eps = 1e-6)) {
@@ -191,12 +209,13 @@ gddlm_lsa <- function(object,
         stop("Length of prior_weights must be equal to the number of parameters in the model.")
     if(min_df > sum(prior_weights != 0))
         stop("min_df cannot be larger than the number of penalized parameters in the model.")
-
+    if(!is.null(group_indicators))
+         if(length(group_indicators) != length(psihat))
+        stop("Length of group_indicators must be equal to the number of parameters in the model.")
 
     #' ## Construct bread/Hessian matrix
     bread_matrix <- bdiag(solve(object$V_mu_coefficients),
                           solve(object$V_sigma_coefficients))
-
 
     ##-----------------------
     ## Attempt to determine a minimum and maximum lambda, if required, for BAR penalty
@@ -210,6 +229,7 @@ gddlm_lsa <- function(object,
         fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
                                                 bread_matrix = bread_matrix,
                                                 prior_weights = prior_weights,
+                                                group_indicators = group_indicators,
                                                 lambda = lambda_max,
                                                 control = control)
 
@@ -218,6 +238,7 @@ gddlm_lsa <- function(object,
             fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
                                                     bread_matrix = bread_matrix,
                                                     prior_weights = prior_weights,
+                                                    group_indicators = group_indicators,
                                                     lambda = lambda_max,
                                                     control = control)
             }
@@ -238,6 +259,7 @@ gddlm_lsa <- function(object,
         cwfit <- .BAR_singlelambda(psihat = psihat,
                                    bread_matrix = bread_matrix,
                                    prior_weights = prior_weights,
+                                   group_indicators = group_indicators,
                                    lambda = lambdaseq[l],
                                    control = control)
 
@@ -301,6 +323,7 @@ gddlm_lsa <- function(object,
 .BAR_singlelambda <- function(psihat,
                               bread_matrix,
                               prior_weights,
+                              group_indicators = NULL,
                               lambda,
                               control) {
 
@@ -313,7 +336,17 @@ gddlm_lsa <- function(object,
 
     cw_psi <- psihat
     while(counter < control$max_iteration & err > control$tol) {
-        GammaMatrix_psi <- diag(x = cw_psi, nrow = length(psihat))
+        if(is.null(group_indicators))
+            GammaMatrix_psi <- diag(x = cw_psi, nrow = length(psihat))
+        if(!is.null(group_indicators)) {
+            group_indicators <- as.numeric(factor(group_indicators))
+            getnorms <- tapply(cw_psi, factor(group_indicators), function(x) sqrt(sum(x^2)))
+            GammaMatrix_psi <- matrix(0, nrow = length(psihat), ncol = length(psihat))
+            for(g in unique(group_indicators)) {
+                #gp_size <- sum(group_indicators == g)
+                GammaMatrix_psi[group_indicators == g, group_indicators == g] <- diag(x = getnorms[g], nrow = sum(group_indicators == g))
+                }
+            }
         diag(GammaMatrix_psi)[prior_weights == 0] <- 1
         GammaMatrix_psi <- as(GammaMatrix_psi, "sparseMatrix")
 

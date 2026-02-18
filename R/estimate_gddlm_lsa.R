@@ -12,7 +12,7 @@
 #'
 #'
 #' @details
-#' See associated manuscript (currently in revision).
+#' See associated manuscript (currently in preparation).
 #'
 #'
 #' @return A list with the following elements:
