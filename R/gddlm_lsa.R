@@ -339,9 +339,11 @@ gddlm_lsa <- function(object,
         if(is.null(group_indicators))
             GammaMatrix_psi <- diag(x = cw_psi, nrow = length(psihat))
         if(!is.null(group_indicators)) {
+            group_indicators <- as.numeric(factor(group_indicators))
             getnorms <- tapply(cw_psi, factor(group_indicators), function(x) sqrt(sum(x^2)))
             GammaMatrix_psi <- matrix(0, nrow = length(psihat), ncol = length(psihat))
             for(g in unique(group_indicators)) {
+                #gp_size <- sum(group_indicators == g)
                 GammaMatrix_psi[group_indicators == g, group_indicators == g] <- diag(x = getnorms[g], nrow = sum(group_indicators == g))
                 }
             }
