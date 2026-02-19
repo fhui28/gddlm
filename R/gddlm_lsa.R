@@ -198,6 +198,11 @@ gddlm_lsa <- function(object,
         control$tol <- 1e-6
     if(is.null(control$round_eps))
         control$round_eps <- 1e-6
+    if(is.null(control$warm_starts))
+        control$warm_starts <- FALSE
+    control$warm_starts <- FALSE
+    #if(control$warm_starts == TRUE)
+    #    message("Warm starts used; all parallelization arguments ignored.")
 
     psihat <- c(object$mu_coefficients, object$sigma_coefficients)
     coefficient_names <- names(psihat)
@@ -260,6 +265,7 @@ gddlm_lsa <- function(object,
                                    bread_matrix = bread_matrix,
                                    prior_weights = prior_weights,
                                    group_indicators = group_indicators,
+                                   warm_starts = warm_starts,
                                    lambda = lambdaseq[l],
                                    control = control)
 
@@ -276,7 +282,21 @@ gddlm_lsa <- function(object,
         return(out)
         }
 
-    allfits <- foreach(l = 1:length(lambdaseq)) %dopar% cwfit_fn(l = l)
+    if(control$warm_starts == FALSE) {
+        warm_starts <- NULL
+        allfits <- foreach(l = 1:length(lambdaseq)) %dopar% cwfit_fn(l = l)
+        }
+    if(control$warm_starts == TRUE) {
+        allfits <- vector("list", length(lambdaseq))
+        for(l in 1:length(lambdaseq)) {
+            if(l == 1) {
+                warm_starts <- NULL
+                } else {
+                warm_starts <- allfits[[l-1]]$cw_coefficients + control$round_eps
+                }
+            allfits[[l]] <- cwfit_fn(l = l)
+            }
+        }
     toc <- proc.time()
 
     coefficients_path <- Matrix::Matrix(sapply(allfits, function(x) x$cw_coefficients), sparse = TRUE)
@@ -324,6 +344,7 @@ gddlm_lsa <- function(object,
                               bread_matrix,
                               prior_weights,
                               group_indicators = NULL,
+                              warm_starts = NULL,
                               lambda,
                               control) {
 
@@ -335,6 +356,8 @@ gddlm_lsa <- function(object,
     counter <- 0
 
     cw_psi <- psihat
+    if(!is.null(warm_starts))
+        cw_psi <- warm_starts
     while(counter < control$max_iteration & err > control$tol) {
         if(is.null(group_indicators))
             GammaMatrix_psi <- diag(x = cw_psi, nrow = length(psihat))
@@ -347,6 +370,7 @@ gddlm_lsa <- function(object,
                 GammaMatrix_psi[group_indicators == g, group_indicators == g] <- diag(x = getnorms[g], nrow = sum(group_indicators == g))
                 }
             }
+
         diag(GammaMatrix_psi)[prior_weights == 0] <- 1
         GammaMatrix_psi <- as(GammaMatrix_psi, "sparseMatrix")
 
