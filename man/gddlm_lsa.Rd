@@ -13,7 +13,8 @@ gddlm_lsa(
   group_indicators = NULL,
   num_cores = NULL,
   prior_weights = NULL,
-  control = list(max_iteration = 1000, tol = 1e-06, round_eps = 1e-06)
+  control = list(max_iteration = 1000, sequential = FALSE, tol = 1e-06, round_eps =
+    1e-06)
 )
 }
 \arguments{
@@ -36,6 +37,7 @@ gddlm_lsa(
 \item{control}{A list containing the following elements:
 \itemize{
 \item{max_iteration: }{the maximum number of iterations in the BAR penalty algorithm.}
+\item{sequential: }{A logical indicating whether to perform selection on the mu component first, then selection on the sigma component. Default to \code{FALSE}, in which joint selection is performed on both components simultaneously.}
 \item{tol: }{the convergence criterion for the BAR penalty algorithm; the squared norm of the difference between estimates from successive iterations must be smaller than this value.}
 \item{round_eps: }{a tolerance to round values to zero; this is technically not needed as the BAR penalty will produce exactly zero estimates up to machine error, but is included anyway.}
 }}
@@ -43,7 +45,8 @@ gddlm_lsa(
 \value{
 An object of class \code{gddlm_lsa} with the following elements (and not necessarily in the order below):
 \item{call:}{The function call.}
-\item{lambda:}{The actual sequence of tuning parameter, lambda, values used.}
+\item{control:}{Same \code{control} as input}
+\item{lambda:}{The actual sequence of tuning parameter, lambda, values used. If \code{control$sequential == TRUE}, then there are separate \code{mu_lambda} and \code{sigma_lambda} sequences.}
 \item{mu_coefficients_path:}{A sparse matrix showing the estimated parameters corresponding to the mean (mu) component at each point on the regularization path. The number of rows is equal \code{length(object$mu_coefficients)}, while the number of columns is equal to \code{length(lambda)}.}
 \item{sigma_coefficients_path:}{A sparse matrix showing the estimated parameters corresponding to the log standard deviation (sigma) component at each point on the regularization path. The number of rows is equal \code{length(object$sigma_coefficients)}, while the number of columns is equal to \code{length(lambda)}.}
 \item{information:}{A data frame containing various information about the regularization path, including:
@@ -51,7 +54,8 @@ The sequence of lambda values used;
 The value of the (unpenalized) least squares approximation statistic at each point on the regularization path;
 The degrees of freedom (number of non-zero estimated parameters) at each point on the regularization path;
 Various information criteria at each point on the regularization path (see the details above for more information of these).
-}
+
+Note if \code{control$sequential == TRUE}, then there are separate \code{mu_information} and \code{sigma_information} data frames, each containing the same information as described above but for the mu and sigma components respectively.}
 \item{time_taken:}{The time taken to construct the regularization path.}
 }
 \description{
@@ -172,9 +176,12 @@ Delta_est
 
 
 # Demonstrating how to perform group selection with the BAR penalty
-# In this case, we will penalize the first ten coefficients in the mu component individually, then form a group from the remaining coefficients in mu component so that these are penalized in a collective manner.
+# In this case, we will penalize the first ten coefficients in the mu component individually,
+# then form a group from the remaining coefficients in mu component so that these are
+# penalized in a collective manner.
 # We will apply the same approach to the sigma component.
-# Note this is *purely for illustrative purposes*, and in practice the groups should be formed more carefully and using with prior knowledge!
+# Note this is *purely for illustrative purposes*
+# In practice the groups should be formed more carefully and using with prior knowledge!
 fit_gddlm_choosegamma_lsa2 <- gddlm_lsa(object = fit_gddglm_choosegamma,
 group_indicators = c(1:10, rep(11, length(fit_gddglm_choosegamma$mu_coefficients)-10),
 11 + c(1:10, rep(11, length(fit_gddglm_choosegamma$sigma_coefficients)-10))))

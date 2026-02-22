@@ -18,6 +18,7 @@
 #' @param control A list containing the following elements:
 #' \itemize{
 #' \item{max_iteration: }{the maximum number of iterations in the BAR penalty algorithm.}
+#' \item{sequential: }{A logical indicating whether to perform selection on the mu component first, then selection on the sigma component. Default to `FALSE`, in which joint selection is performed on both components simultaneously.}
 #' \item{tol: }{the convergence criterion for the BAR penalty algorithm; the squared norm of the difference between estimates from successive iterations must be smaller than this value.}
 #' \item{round_eps: }{a tolerance to round values to zero; this is technically not needed as the BAR penalty will produce exactly zero estimates up to machine error, but is included anyway.}
 #' }
@@ -36,7 +37,8 @@
 #'
 #' @return An object of class `gddlm_lsa` with the following elements (and not necessarily in the order below):
 #' \item{call:}{The function call.}
-#' \item{lambda:}{The actual sequence of tuning parameter, lambda, values used.}
+#' \item{control:}{Same `control` as input}
+#' \item{lambda:}{The actual sequence of tuning parameter, lambda, values used. If `control$sequential == TRUE`, then there are separate `mu_lambda` and `sigma_lambda` sequences.}
 #' \item{mu_coefficients_path:}{A sparse matrix showing the estimated parameters corresponding to the mean (mu) component at each point on the regularization path. The number of rows is equal `length(object$mu_coefficients)`, while the number of columns is equal to `length(lambda)`.}
 #' \item{sigma_coefficients_path:}{A sparse matrix showing the estimated parameters corresponding to the log standard deviation (sigma) component at each point on the regularization path. The number of rows is equal `length(object$sigma_coefficients)`, while the number of columns is equal to `length(lambda)`.}
 #' \item{information:}{A data frame containing various information about the regularization path, including:
@@ -44,7 +46,8 @@
 #' The value of the (unpenalized) least squares approximation statistic at each point on the regularization path;
 #' The degrees of freedom (number of non-zero estimated parameters) at each point on the regularization path;
 #' Various information criteria at each point on the regularization path (see the details above for more information of these).
-#' }
+#'
+#' Note if `control$sequential == TRUE`, then there are separate `mu_information` and `sigma_information` data frames, each containing the same information as described above but for the mu and sigma components respectively.}
 #' \item{time_taken:}{The time taken to construct the regularization path.}
 #'
 #' @author Francis K.C. Hui <fhui28@gmail.com>
@@ -150,9 +153,12 @@
 #'
 #'
 #' # Demonstrating how to perform group selection with the BAR penalty
-#' # In this case, we will penalize the first ten coefficients in the mu component individually, then form a group from the remaining coefficients in mu component so that these are penalized in a collective manner.
+#' # In this case, we will penalize the first ten coefficients in the mu component individually,
+#' # then form a group from the remaining coefficients in mu component so that these are
+#' # penalized in a collective manner.
 #' # We will apply the same approach to the sigma component.
-#' # Note this is *purely for illustrative purposes*, and in practice the groups should be formed more carefully and using with prior knowledge!
+#' # Note this is *purely for illustrative purposes*
+#' # In practice the groups should be formed more carefully and using with prior knowledge!
 #' fit_gddlm_choosegamma_lsa2 <- gddlm_lsa(object = fit_gddglm_choosegamma,
 #' group_indicators = c(1:10, rep(11, length(fit_gddglm_choosegamma$mu_coefficients)-10),
 #' 11 + c(1:10, rep(11, length(fit_gddglm_choosegamma$sigma_coefficients)-10))))
@@ -180,11 +186,11 @@ gddlm_lsa <- function(object,
                       group_indicators = NULL,
                       num_cores = NULL,
                       prior_weights = NULL,
-                      control = list(max_iteration = 1000, tol = 1e-6, round_eps = 1e-6)) {
+                      control = list(max_iteration = 1000, sequential = FALSE, tol = 1e-6, round_eps = 1e-6)) {
 
-    ##-------------------
+    ##-----------------------
     #' # Checks and balances
-    ##-------------------
+    ##-----------------------
     if(!inherits(object, "gddlm"))
         stop("object must be of class 'gddlm'.")
     if(is.null(num_cores))
@@ -198,11 +204,13 @@ gddlm_lsa <- function(object,
         control$tol <- 1e-6
     if(is.null(control$round_eps))
         control$round_eps <- 1e-6
-    if(is.null(control$warm_starts))
-        control$warm_starts <- FALSE
+    #if(is.null(control$warm_starts))
+    #    control$warm_starts <- FALSE
     control$warm_starts <- FALSE
     #if(control$warm_starts == TRUE)
     #    message("Warm starts used; all parallelization arguments ignored.")
+    if(is.null(control$sequential))
+        control$sequential <- FALSE
 
     psihat <- c(object$mu_coefficients, object$sigma_coefficients)
     coefficient_names <- names(psihat)
@@ -223,110 +231,333 @@ gddlm_lsa <- function(object,
                           solve(object$V_sigma_coefficients))
 
     ##-----------------------
-    ## Attempt to determine a minimum and maximum lambda, if required, for BAR penalty
+    ## Joint selection on mu and sigma components
     ##-----------------------
-    if(!is.null(lambda))
-        lambdaseq <- lambda
-    if(is.null(lambda)) {
-        message("Finding an appropriate sequence of lambda values...")
-        lambda_max <- 0.05
+    if(control$sequential == FALSE) {
+        ##-----------------------
+        ## Attempt to determine a minimum and maximum lambda, if required, for BAR penalty
+        ##-----------------------
+        if(!is.null(lambda))
+            lambdaseq <- lambda
+        if(is.null(lambda)) {
+            message("Finding an appropriate sequence of lambda values...")
+            lambda_max <- 0.05
 
-        fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
-                                                bread_matrix = bread_matrix,
-                                                prior_weights = prior_weights,
-                                                group_indicators = group_indicators,
-                                                lambda = lambda_max,
-                                                control = control)
-
-        while(sum(fit_togetmaxlambda[prior_weights != 0] != 0) > min_df) {
-            lambda_max <- lambda_max*1.1
             fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
                                                     bread_matrix = bread_matrix,
                                                     prior_weights = prior_weights,
                                                     group_indicators = group_indicators,
                                                     lambda = lambda_max,
                                                     control = control)
-            }
 
-        lambdaseq <- lseq(lambda_max,
-                          lambda_max*lambda_min_ratio,
-                          length = nlambda,
-                          decreasing = TRUE)
-        rm(fit_togetmaxlambda)
-        }
-
-    ##-----------------------
-    #' ## Construct regularization path for BAR penalty
-    ##-----------------------
-    tic <- proc.time()
-    message("Constructing regularization path...")
-    cwfit_fn <- function(l) {
-        cwfit <- .BAR_singlelambda(psihat = psihat,
-                                   bread_matrix = bread_matrix,
-                                   prior_weights = prior_weights,
-                                   group_indicators = group_indicators,
-                                   warm_starts = warm_starts,
-                                   lambda = lambdaseq[l],
-                                   control = control)
-
-        out <- list(
-            cw_coefficients = cwfit,
-            df_path = sum(cwfit != 0),
-            LSA_statistic = as.vector(t(as.vector(cwfit - psihat)) %*% bread_matrix %*% as.vector(cwfit - psihat))
-            )
-
-        out$AIC <- out$LSA_statistic + 2*out$df_path
-        out$BIC <- out$LSA_statistic + log(nrow(object$model))*out$df_path
-        out$EBIC <- out$LSA_statistic + (log(nrow(object$model)) + log(sum(prior_weights != 0)))*out$df_path #' Note log(P) counts only the number of penalized parameters
-        out$EBIC2 <- out$LSA_statistic + (log(nrow(object$model)) + 2 * log(sum(prior_weights != 0)))*out$df_path
-        return(out)
-        }
-
-    if(control$warm_starts == FALSE) {
-        warm_starts <- NULL
-        allfits <- foreach(l = 1:length(lambdaseq)) %dopar% cwfit_fn(l = l)
-        }
-    if(control$warm_starts == TRUE) {
-        allfits <- vector("list", length(lambdaseq))
-        for(l in 1:length(lambdaseq)) {
-            if(l == 1) {
-                warm_starts <- NULL
-                } else {
-                warm_starts <- allfits[[l-1]]$cw_coefficients + control$round_eps
+            while(sum(fit_togetmaxlambda[prior_weights != 0] != 0) > min_df) {
+                lambda_max <- lambda_max*1.1
+                fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
+                                                        bread_matrix = bread_matrix,
+                                                        prior_weights = prior_weights,
+                                                        group_indicators = group_indicators,
+                                                        lambda = lambda_max,
+                                                        control = control)
                 }
-            allfits[[l]] <- cwfit_fn(l = l)
+
+            lambdaseq <- lseq(lambda_max,
+                              lambda_max*lambda_min_ratio,
+                              length = nlambda,
+                              decreasing = TRUE)
+            rm(fit_togetmaxlambda)
             }
+
+        ##-----------------------
+        #' ## Construct regularization path for BAR penalty
+        ##-----------------------
+        tic <- proc.time()
+        message("Constructing regularization path...")
+        cwfit_fn <- function(l) {
+            cwfit <- .BAR_singlelambda(psihat = psihat,
+                                       bread_matrix = bread_matrix,
+                                       prior_weights = prior_weights,
+                                       group_indicators = group_indicators,
+                                       warm_starts = warm_starts,
+                                       lambda = lambdaseq[l],
+                                       control = control)
+
+            out <- list(cw_coefficients = cwfit,
+                        df_path = sum(cwfit != 0),
+                        LSA_statistic = as.vector(t(as.vector(cwfit - psihat)) %*% bread_matrix %*% as.vector(cwfit - psihat)))
+
+            out$AIC <- out$LSA_statistic + 2*out$df_path
+            out$BIC <- out$LSA_statistic + log(nrow(object$model))*out$df_path
+            out$EBIC <- out$LSA_statistic + (log(nrow(object$model)) + log(sum(prior_weights != 0)))*out$df_path #' Note log(P) counts only the number of penalized parameters
+            out$EBIC2 <- out$LSA_statistic + (log(nrow(object$model)) + 2 * log(sum(prior_weights != 0)))*out$df_path
+            return(out)
+            }
+
+        if(control$warm_starts == FALSE) {
+            warm_starts <- NULL
+            allfits <- foreach(l = 1:length(lambdaseq)) %dopar% cwfit_fn(l = l)
+            }
+        if(control$warm_starts == TRUE) {
+            allfits <- vector("list", length(lambdaseq))
+            for(l in 1:length(lambdaseq)) {
+                if(l == 1) {
+                    warm_starts <- NULL
+                    } else {
+                    warm_starts <- allfits[[l-1]]$cw_coefficients + control$round_eps
+                    }
+                allfits[[l]] <- cwfit_fn(l = l)
+                }
+            }
+        toc <- proc.time()
+
+        coefficients_path <- Matrix::Matrix(sapply(allfits, function(x) x$cw_coefficients), sparse = TRUE)
+        rownames(coefficients_path) <- names(psihat)
+        df_path <- sapply(allfits, function(x) x$df_path)
+        LSQ_statistics <- sapply(allfits, function(x) x$LSA_statistic)
+        AIC <- sapply(allfits, function(x) x$AIC)
+        BIC <- sapply(allfits, function(x) x$BIC)
+        EBIC <- sapply(allfits, function(x) x$EBIC)
+        EBIC2 <- sapply(allfits, function(x) x$EBIC2)
+
+        out <- list(lambda = lambdaseq,
+                    mu_coefficients_path = coefficients_path[1:length(object$mu_coefficients), ],
+                    sigma_coefficients_path = coefficients_path[length(object$mu_coefficients) + 1:length(object$sigma_coefficients), ],
+                    information = data.frame(lambda = lambdaseq,
+                                             LSQ_statistic = LSQ_statistics,
+                                             df = df_path,
+                                             AIC,
+                                             BIC,
+                                             EBIC,
+                                             EBIC2),
+                    time_taken = toc - tic)
+
+        ##-----------------------
+        ## Final touch up
+        ##-----------------------
+        rownames(out$mu_coefficients_path) <- names(object$mu_coefficients)
+        rownames(out$sigma_coefficients_path) <- names(object$sigma_coefficients)
         }
-    toc <- proc.time()
 
-    coefficients_path <- Matrix::Matrix(sapply(allfits, function(x) x$cw_coefficients), sparse = TRUE)
-    rownames(coefficients_path) <- names(psihat)
-    df_path <- sapply(allfits, function(x) x$df_path)
-    LSQ_statistics <- sapply(allfits, function(x) x$LSA_statistic)
-    AIC <- sapply(allfits, function(x) x$AIC)
-    BIC <- sapply(allfits, function(x) x$BIC)
-    EBIC <- sapply(allfits, function(x) x$EBIC)
-    EBIC2 <- sapply(allfits, function(x) x$EBIC2)
-
-    out <- list(lambda = lambdaseq,
-                mu_coefficients_path = coefficients_path[1:length(object$mu_coefficients), ],
-                sigma_coefficients_path = coefficients_path[length(object$mu_coefficients) + 1:length(object$sigma_coefficients), ],
-                information = data.frame(lambda = lambdaseq,
-                                         LSQ_statistic = LSQ_statistics,
-                                         df = df_path,
-                                         AIC,
-                                         BIC,
-                                         EBIC,
-                                         EBIC2),
-                time_taken = toc - tic)
 
     ##-----------------------
-    ## Final touch up
+    ## Selection on mu component first, then selection on sigma component
     ##-----------------------
-    rownames(out$mu_coefficients_path) <- names(object$mu_coefficients)
-    rownames(out$sigma_coefficients_path) <- names(object$sigma_coefficients)
+    if(control$sequential == TRUE) {
+        ##-----------------------
+        ## Selection on mu component
+        ##-----------------------
+        psihat <- object$mu_coefficients
+        coefficient_names <- names(psihat)
+        bread_matrix <- solve(object$V_mu_coefficients)
+        cw_prior_weights <- prior_weights[1:length(object$mu_coefficients)]
+        cw_group_indicators <- group_indicators[1:length(object$mu_coefficients)]
+
+        ##-----------------------
+        ## Attempt to determine a minimum and maximum lambda, if required, for BAR penalty
+        ##-----------------------
+        if(!is.null(lambda))
+            mu_lambdaseq <- lambda
+        if(is.null(lambda)) {
+            message("Finding an appropriate sequence of lambda values -- mu component...")
+            lambda_max <- 0.05
+
+            fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
+                                                    bread_matrix = bread_matrix,
+                                                    prior_weights = cw_prior_weights,
+                                                    group_indicators = cw_group_indicators,
+                                                    lambda = lambda_max,
+                                                    control = control)
+
+            while(sum(fit_togetmaxlambda[cw_prior_weights != 0] != 0) > min_df) {
+                lambda_max <- lambda_max*1.1
+                fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
+                                                        bread_matrix = bread_matrix,
+                                                        prior_weights = cw_prior_weights,
+                                                        group_indicators = cw_group_indicators,
+                                                        lambda = lambda_max,
+                                                        control = control)
+                }
+
+            mu_lambdaseq <- lseq(lambda_max,
+                                 lambda_max*lambda_min_ratio,
+                                 length = nlambda,
+                                 decreasing = TRUE)
+            rm(fit_togetmaxlambda)
+            }
+
+        ##-----------------------
+        #' ## Construct regularization path for BAR penalty
+        ##-----------------------
+        mu_tic <- proc.time()
+        message("Constructing regularization path -- mu component...")
+        cwfit_fn <- function(l) {
+            cwfit <- .BAR_singlelambda(psihat = psihat,
+                                       bread_matrix = bread_matrix,
+                                       prior_weights = cw_prior_weights,
+                                       group_indicators = cw_group_indicators,
+                                       warm_starts = warm_starts,
+                                       lambda = mu_lambdaseq[l],
+                                       control = control)
+
+            out <- list(cw_coefficients = cwfit,
+                        df_path = sum(cwfit != 0),
+                        LSA_statistic = as.vector(t(as.vector(cwfit - psihat)) %*% bread_matrix %*% as.vector(cwfit - psihat))
+                        )
+
+            out$AIC <- out$LSA_statistic + 2*out$df_path
+            out$BIC <- out$LSA_statistic + log(nrow(object$model))*out$df_path
+            out$EBIC <- out$LSA_statistic + (log(nrow(object$model)) + log(sum(prior_weights != 0)))*out$df_path #' Note log(P) counts only the number of penalized parameters
+            out$EBIC2 <- out$LSA_statistic + (log(nrow(object$model)) + 2 * log(sum(prior_weights != 0)))*out$df_path
+            return(out)
+            }
+
+        if(control$warm_starts == FALSE) {
+            warm_starts <- NULL
+            mu_allfits <- foreach(l = 1:length(mu_lambdaseq)) %dopar% cwfit_fn(l = l)
+            }
+        if(control$warm_starts == TRUE) {
+            mu_allfits <- vector("list", length(mu_lambdaseq))
+            for(l in 1:length(mu_lambdaseq)) {
+                if(l == 1) {
+                    warm_starts <- NULL
+                    } else {
+                    warm_starts <- mu_allfits[[l-1]]$cw_coefficients + control$round_eps
+                    }
+                mu_allfits[[l]] <- cwfit_fn(l = l)
+                }
+            }
+        mu_toc <- proc.time()
+
+        mu_coefficients_path <- Matrix::Matrix(sapply(mu_allfits, function(x) x$cw_coefficients), sparse = TRUE)
+        rownames(mu_coefficients_path) <- names(psihat)
+        mu_df_path <- sapply(mu_allfits, function(x) x$df_path)
+        mu_LSQ_statistics <- sapply(mu_allfits, function(x) x$LSA_statistic)
+        mu_AIC <- sapply(mu_allfits, function(x) x$AIC)
+        mu_BIC <- sapply(mu_allfits, function(x) x$BIC)
+        mu_EBIC <- sapply(mu_allfits, function(x) x$EBIC)
+        mu_EBIC2 <- sapply(mu_allfits, function(x) x$EBIC2)
+
+        ##-----------------------
+        ## Selection on sigma component
+        ##-----------------------
+        psihat <- object$sigma_coefficients
+        coefficient_names <- names(psihat)
+        bread_matrix <- solve(object$V_sigma_coefficients)
+        cw_prior_weights <- prior_weights[length(object$mu_coefficients) + 1:length(object$sigma_coefficients)]
+        cw_group_indicators <- group_indicators[length(object$mu_coefficients) + 1:length(object$sigma_coefficients)]
+
+        ##-----------------------
+        ## Attempt to determine a minimum and maximum lambda, if required, for BAR penalty
+        ##-----------------------
+        if(!is.null(lambda))
+            sigma_lambdaseq <- lambda
+        if(is.null(lambda)) {
+            message("Finding an appropriate sequence of lambda values -- sigma component...")
+            lambda_max <- 0.05
+
+            fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
+                                                    bread_matrix = bread_matrix,
+                                                    prior_weights = cw_prior_weights,
+                                                    group_indicators = cw_group_indicators,
+                                                    lambda = lambda_max,
+                                                    control = control)
+
+            while(sum(fit_togetmaxlambda[cw_prior_weights != 0] != 0) > min_df) {
+                lambda_max <- lambda_max*1.1
+                fit_togetmaxlambda <- .BAR_singlelambda(psihat = psihat,
+                                                        bread_matrix = bread_matrix,
+                                                        prior_weights = cw_prior_weights,
+                                                        group_indicators = cw_group_indicators,
+                                                        lambda = lambda_max,
+                                                        control = control)
+                }
+
+            sigma_lambdaseq <- lseq(lambda_max,
+                                    lambda_max*lambda_min_ratio,
+                                    length = nlambda,
+                                    decreasing = TRUE)
+            rm(fit_togetmaxlambda)
+            }
+
+        ##-----------------------
+        #' ## Construct regularization path for BAR penalty
+        ##-----------------------
+        sigma_tic <- proc.time()
+        message("Constructing regularization path -- sigma component...")
+        cwfit_fn <- function(l) {
+            cwfit <- .BAR_singlelambda(psihat = psihat,
+                                       bread_matrix = bread_matrix,
+                                       prior_weights = cw_prior_weights,
+                                       group_indicators = cw_group_indicators,
+                                       warm_starts = warm_starts,
+                                       lambda = sigma_lambdaseq[l],
+                                       control = control)
+
+            out <- list(cw_coefficients = cwfit,
+                              df_path = sum(cwfit != 0),
+                              LSA_statistic = as.vector(t(as.vector(cwfit - psihat)) %*% bread_matrix %*% as.vector(cwfit - psihat)))
+
+            out$AIC <- out$LSA_statistic + 2*out$df_path
+            out$BIC <- out$LSA_statistic + log(nrow(object$model))*out$df_path
+            out$EBIC <- out$LSA_statistic + (log(nrow(object$model)) + log(sum(prior_weights != 0)))*out$df_path #' Note log(P) counts only the number of penalized parameters
+            out$EBIC2 <- out$LSA_statistic + (log(nrow(object$model)) + 2 * log(sum(prior_weights != 0)))*out$df_path
+            return(out)
+            }
+
+        if(control$warm_starts == FALSE) {
+            warm_starts <- NULL
+            sigma_allfits <- foreach(l = 1:length(sigma_lambdaseq)) %dopar% cwfit_fn(l = l)
+            }
+        if(control$warm_starts == TRUE) {
+            sigma_allfits <- vector("list", length(sigma_lambdaseq))
+            for(l in 1:length(sigma_lambdaseq)) {
+                if(l == 1) {
+                    warm_starts <- NULL
+                    } else {
+                    warm_starts <- sigma_allfits[[l-1]]$cw_coefficients + control$round_eps
+                    }
+                sigma_allfits[[l]] <- cwfit_fn(l = l)
+                }
+            }
+        sigma_toc <- proc.time()
+
+        sigma_coefficients_path <- Matrix::Matrix(sapply(sigma_allfits, function(x) x$cw_coefficients), sparse = TRUE)
+        rownames(sigma_coefficients_path) <- names(psihat)
+        sigma_df_path <- sapply(sigma_allfits, function(x) x$df_path)
+        sigma_LSQ_statistics <- sapply(sigma_allfits, function(x) x$LSA_statistic)
+        sigma_AIC <- sapply(sigma_allfits, function(x) x$AIC)
+        sigma_BIC <- sapply(sigma_allfits, function(x) x$BIC)
+        sigma_EBIC <- sapply(sigma_allfits, function(x) x$EBIC)
+        sigma_EBIC2 <- sapply(sigma_allfits, function(x) x$EBIC2)
+
+
+        ##-----------------------
+        ## Final touch up
+        ##-----------------------
+        out <- list(mu_lambda = mu_lambdaseq,
+                    sigma_lambda = sigma_lambdaseq,
+                    mu_coefficients_path = mu_coefficients_path,
+                    sigma_coefficients_path = sigma_coefficients_path,
+                    mu_information = data.frame(lambda = mu_lambdaseq,
+                                                LSQ_statistic = mu_LSQ_statistics,
+                                                df = mu_df_path,
+                                                AIC = mu_AIC,
+                                                BIC = mu_BIC,
+                                                EBIC = mu_EBIC,
+                                                EBIC2 = mu_EBIC2),
+                    sigma_information = data.frame(lambda = sigma_lambdaseq,
+                                                   LSQ_statistic = sigma_LSQ_statistics,
+                                                   df = sigma_df_path,
+                                                   AIC = sigma_AIC,
+                                                   BIC = sigma_BIC,
+                                                   EBIC = sigma_EBIC,
+                                                   EBIC2 = sigma_EBIC2),
+                    time_taken = mu_toc - mu_tic + sigma_toc - sigma_tic)
+        rownames(out$mu_coefficients_path) <- names(object$mu_coefficients)
+        rownames(out$sigma_coefficients_path) <- names(object$sigma_coefficients)
+        }
 
     out$call <- match.call()
+    out$control <- control
     class(out) <- "gddlm_lsa"
     return(out)
     }

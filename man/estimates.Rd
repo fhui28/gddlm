@@ -21,7 +21,7 @@ estimates(object, ...)
 A list with the following elements:
 \item{mu_coefficients}{A vector of estimated coefficients corresponding to the mean (mu) component of the robust double linear model. Due to the use of the BAR penalty, some of the estimated coefficients will be shrunk to zero.}
 \item{sigma_coefficients}{A vector of estimated coefficients corresponding to the log standard deviation (sigma) component of the robust double linear model. Due to the use of the BAR penalty, some of the estimated coefficients will be shrunk to zero.}
-\item{lambda}{The numerical value of the tuning parameter corresponding to the extracted estimates.}
+\item{lambda}{The numerical value of the tuning parameter corresponding to the extracted estimates. If \code{object$control$sequential == TRUE}, then separate \code{mu_lambda} and \code{sigma_lambda} are returned.}
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}}

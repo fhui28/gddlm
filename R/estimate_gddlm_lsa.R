@@ -18,7 +18,7 @@
 #' @return A list with the following elements:
 #' \item{mu_coefficients}{A vector of estimated coefficients corresponding to the mean (mu) component of the robust double linear model. Due to the use of the BAR penalty, some of the estimated coefficients will be shrunk to zero.}
 #' \item{sigma_coefficients}{A vector of estimated coefficients corresponding to the log standard deviation (sigma) component of the robust double linear model. Due to the use of the BAR penalty, some of the estimated coefficients will be shrunk to zero.}
-#' \item{lambda}{The numerical value of the tuning parameter corresponding to the extracted estimates.}
+#' \item{lambda}{The numerical value of the tuning parameter corresponding to the extracted estimates. If `object$control$sequential == TRUE`, then separate `mu_lambda` and `sigma_lambda` are returned.}
 #'
 #'
 #' @author Francis K.C. Hui <francis.hui@anu.edu.au>
@@ -47,28 +47,57 @@ estimates.gddlm_lsa <- function(object, lambda, ...) {
     ##-------------------
     ## Extract coefficients
     ##-------------------
-    if(!is.numeric(lambda)) {
-        lambda <- match.arg(lambda, choices = c("AIC", "BIC", "EBIC", "EBIC2"))
-        sel_lambda <- which.min(object$information[,lambda])
+    if(object$control$sequential == FALSE) {
+        if(!is.numeric(lambda)) {
+            lambda <- match.arg(lambda, choices = c("AIC", "BIC", "EBIC", "EBIC2"))
+            sel_lambda <- which.min(object$information[,lambda])
 
-        sel_mu_coefficients <- object$mu_coefficients_path[,sel_lambda]
-        sel_sigma_coefficients <- object$sigma_coefficients_path[,sel_lambda]
-        final_lambda <- object$lambda[sel_lambda]
+            sel_mu_coefficients <- object$mu_coefficients_path[,sel_lambda]
+            sel_sigma_coefficients <- object$sigma_coefficients_path[,sel_lambda]
+            final_lambda <- object$lambda[sel_lambda]
+            }
+
+        if(is.numeric(lambda)) {
+            lambda_list <- .lambda_interp(lambda_seq = object$lambda, s = lambda)
+
+            sel_mu_coefficients <- object$mu_coefficients_path[, lambda_list$left, drop = FALSE] %*% Diagonal(x = lambda_list$frac) + object$mu_coefficients_path[, lambda_list$right, drop = FALSE] %*% Diagonal(x = 1 - lambda_list$frac)
+            sel_mu_coefficients <- as.vector(sel_mu_coefficients)
+            names(sel_mu_coefficients) <- rownames(object$mu_coefficients_path)
+
+            sel_sigma_coefficients <- object$sigma_coefficients_path[, lambda_list$left, drop = FALSE] %*% Diagonal(x = lambda_list$frac) + object$sigma_coefficients_path[, lambda_list$right, drop = FALSE] %*% Diagonal(x = 1 - lambda_list$frac)
+            sel_sigma_coefficients <- as.vector(sel_sigma_coefficients)
+            names(sel_sigma_coefficients) <- rownames(object$sigma_coefficients_path)
+
+            final_lambda <- lambda
+            }
         }
 
-    if(is.numeric(lambda)) {
-        lambda_list <- .lambda_interp(lambda_seq = object$lambda,
-                                      s = lambda)
+    if(object$control$sequential == TRUE) {
+        if(!is.numeric(lambda)) {
+            lambda <- match.arg(lambda, choices = c("AIC", "BIC", "EBIC", "EBIC2"))
+            sel_mu_lambda <- which.min(object$mu_information[,lambda])
+            sel_sigma_lambda <- which.min(object$sigma_information[,lambda])
 
-        sel_mu_coefficients <- object$mu_coefficients_path[, lambda_list$left, drop = FALSE] %*% Diagonal(x = lambda_list$frac) + object$mu_coefficients_path[, lambda_list$right, drop = FALSE] %*% Diagonal(x = 1 - lambda_list$frac)
-        sel_mu_coefficients <- as.vector(sel_mu_coefficients)
-        names(sel_mu_coefficients) <- rownames(object$mu_coefficients_path)
+            sel_mu_coefficients <- object$mu_coefficients_path[,sel_mu_lambda]
+            sel_sigma_coefficients <- object$sigma_coefficients_path[,sel_sigma_lambda]
+            final_mu_lambda <- object$mu_lambda[sel_mu_lambda]
+            final_sigma_lambda <- object$sigma_lambda[sel_sigma_lambda]
+            }
+        if(is.numeric(lambda)) {
+            mu_lambda_list <- .lambda_interp(lambda_seq = object$mu_lambda, s = lambda)
+            sigma_lambda_list <- .lambda_interp(lambda_seq = object$sigma_lambda, s = lambda)
 
-        sel_sigma_coefficients <- object$sigma_coefficients_path[, lambda_list$left, drop = FALSE] %*% Diagonal(x = lambda_list$frac) + object$sigma_coefficients_path[, lambda_list$right, drop = FALSE] %*% Diagonal(x = 1 - lambda_list$frac)
-        sel_sigma_coefficients <- as.vector(sel_sigma_coefficients)
-        names(sel_sigma_coefficients) <- rownames(object$sigma_coefficients_path)
+            sel_mu_coefficients <- object$mu_coefficients_path[, mu_lambda_list$left, drop = FALSE] %*% Diagonal(x = mu_lambda_list$frac) + object$mu_coefficients_path[, mu_lambda_list$right, drop = FALSE] %*% Diagonal(x = 1 - mu_lambda_list$frac)
+            sel_mu_coefficients <- as.vector(sel_mu_coefficients)
+            names(sel_mu_coefficients) <- rownames(object$mu_coefficients_path)
 
-        final_lambda <- lambda
+            sel_sigma_coefficients <- object$sigma_coefficients_path[, sigma_lambda_list$left, drop = FALSE] %*% Diagonal(x = sigma_lambda_list$frac) + object$sigma_coefficients_path[, sigma_lambda_list$right, drop = FALSE] %*% Diagonal(x = 1 - sigma_lambda_list$frac)
+            sel_sigma_coefficients <- as.vector(sel_sigma_coefficients)
+            names(sel_sigma_coefficients) <- rownames(object$sigma_coefficients_path)
+
+            final_mu_lambda <- lambda
+            final_sigma_lambda <- lambda
+            }
         }
 
 
@@ -76,8 +105,13 @@ estimates.gddlm_lsa <- function(object, lambda, ...) {
     ## Format
     ##-------------------
     out <- list(mu_coefficients = sel_mu_coefficients,
-                sigma_coefficients = sel_sigma_coefficients,
-                lambda = final_lambda)
+                sigma_coefficients = sel_sigma_coefficients)
+    if(object$control$sequential == FALSE)
+        out$lambda <- final_lambda
+    if(object$control$sequential == TRUE) {
+        out$mu_lambda <- final_mu_lambda
+        out$sigma_lambda <- final_sigma_lambda
+        }
     return(out)
     }
 
