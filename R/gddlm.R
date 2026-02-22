@@ -29,7 +29,7 @@
 #' \item \code{call} The matched call.
 #' \item \code{mu_formula} As per input argument.
 #' \item \code{sigma_formula} As per input argument.
-#' \item \code{model} The model frame containing all variables needed for the double linear model fit.
+#' \item \code{model} Same as `data` input argument.
 #' \item \code{mu_coefficients} The estimated coefficients for the mean part of the double linear model.
 #' \item \code{sigma_coefficients} The estimated coefficients for the log standard deviation part of the double linear model.
 #' \item \code{mu_fitted} The fitted values for the mean in the double linear model.
@@ -316,7 +316,7 @@ gddlm <- function(mu_formula,
     out <- list(call = match.call(),
                 mu_formula = mu_formula,
                 sigma_formula = sigma_formula,
-                model = fake_gam_lmls$model,
+                model = data,
                 mu_coefficients = as.vector(mu_coefficients),
                 sigma_coefficients = as.vector(sigma_coefficients),
                 mu_fitted = mu,
