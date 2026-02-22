@@ -13,7 +13,7 @@ gddlm_lsa(
   group_indicators = NULL,
   num_cores = NULL,
   prior_weights = NULL,
-  control = list(max_iteration = 1000, sequential = FALSE, tol = 1e-06, round_eps =
+  control = list(max_iteration = 1000, sequential = FALSE, tol = 1e-08, round_eps =
     1e-06)
 )
 }
@@ -124,7 +124,7 @@ gamma_tuning = runcv$gamma_optimal)
 
 
 # Construct regularization path via least squares approximation with BAR penalty
-fit_gddlm_choosegamma_lsa <- gddlm_lsa(object = fit_gddglm_choosegamma)
+ <- gddlm_lsa(object = fit_gddglm_choosegamma)
 
 ## Example of extracting estimates based minimizing BIC
 estimates(fit_gddlm_choosegamma_lsa, lambda = "BIC")

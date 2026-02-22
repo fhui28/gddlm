@@ -101,7 +101,7 @@
 #'
 #'
 #' # Construct regularization path via least squares approximation with BAR penalty
-#' fit_gddlm_choosegamma_lsa <- gddlm_lsa(object = fit_gddglm_choosegamma)
+#'  <- gddlm_lsa(object = fit_gddglm_choosegamma)
 #'
 #' ## Example of extracting estimates based minimizing BIC
 #' estimates(fit_gddlm_choosegamma_lsa, lambda = "BIC")
@@ -186,7 +186,7 @@ gddlm_lsa <- function(object,
                       group_indicators = NULL,
                       num_cores = NULL,
                       prior_weights = NULL,
-                      control = list(max_iteration = 1000, sequential = FALSE, tol = 1e-6, round_eps = 1e-6)) {
+                      control = list(max_iteration = 1000, sequential = FALSE, tol = 1e-8, round_eps = 1e-6)) {
 
     ##-----------------------
     #' # Checks and balances
@@ -201,9 +201,9 @@ gddlm_lsa <- function(object,
     if(is.null(control$max_iteration))
         control$max_iteration <- 100
     if(is.null(control$tol))
-        control$tol <- 1e-6
+        control$tol <- 1e-8
     if(is.null(control$round_eps))
-        control$round_eps <- 1e-6
+        control$round_eps <- 1e-8
     #if(is.null(control$warm_starts))
     #    control$warm_starts <- FALSE
     control$warm_starts <- FALSE
@@ -580,7 +580,7 @@ gddlm_lsa <- function(object,
                               control) {
 
     ##-------------------------
-    #' ## Attempting the analogue of equation 4 in [https://doi.org/10.1016/j.jmva.2018.08.007]
+    #' ## Attempting the analogue of equation 4 in [https://doi.org/10.1016/j.jallfitsmva.2018.08.007]
     ##-------------------------
     Dbar <- Diagonal(x = prior_weights * lambda, n = length(psihat))
     err <- Inf
