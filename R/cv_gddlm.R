@@ -143,7 +143,7 @@ cv_gddlm <- function(mu_formula,
             }
         }
 
-        #' # Perform cross-validation (parallel version)
+    #' # Perform cross-validation (parallel version)
     if(doparallel) {
         compute_cv_error_fn <- function(fold) {
             sel_train <- which(fold_index != fold)
