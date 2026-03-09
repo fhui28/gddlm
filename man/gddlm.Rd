@@ -109,7 +109,7 @@ fit_gddglm_choosegamma
 
 summary(fit_gddglm_choosegamma)
 
-appraise(fit_gddglm_choosegamma)
+gratia::appraise(fit_gddglm_choosegamma)
 
 coef.gddlm(fit_gddglm_choosegamma)
 coef.gddlm(fit_gddglm_choosegamma, type = "sigma")
