@@ -59,6 +59,8 @@ appraise.gddlm <- function(model,
     if(!inherits(model, "gddlm"))
         stop("model must be of class \"gddlm\".")
 
+    tyoe <- match.arg(type, choices = c("deviance", "pearson"))
+
     ##-----------------------
     #' ## Duplicate GAM model but remove as many things as you do not need (mainly done so that gratia does not take in the wrong information)
     ##-----------------------
@@ -143,6 +145,8 @@ appraise.gddlm <- function(model,
                                    line_col = line_col)
 
     make_plots[[1]]$data$weights <- model$final_weights[order(posthoc_mgcv_fit$residuals)]
+    if(type == "pearson")
+        make_plots[[1]]$labels$y <- "Pearson residuals"
     make_plots[[1]]$layers[[2]] <- NULL
     make_plots[[1]] <- make_plots[[1]] +
         ggplot2::geom_point(aes_string(x = 'theoretical', y = 'residuals', color = 'weights')) +
@@ -150,6 +154,8 @@ appraise.gddlm <- function(model,
         ggplot2::theme_bw()
 
     make_plots[[2]]$data$weights <- model$final_weights
+    if(type == "pearson")
+        make_plots[[2]]$labels$y <- "Pearson residuals"
     make_plots[[2]]$layers[[2]] <- NULL
     make_plots[[2]] <- make_plots[[2]] +
         ggplot2::geom_point(aes_string(x = 'eta', y = 'residuals', color = 'weights')) +
