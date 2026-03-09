@@ -129,7 +129,7 @@ appraise.gddlm <- function(model,
 
     make_plots <- gratia::appraise(posthoc_mgcv_fit,
                                    method = method,
-                                   type = type,
+                                   type = "deviance", # Since Pearson and deviance residuals are defined the same way for the postdoc double linear model fit
                                    use_worm = use_worm,
                                    n_uniform = n_uniform,
                                    n_simulate = n_simulate,
