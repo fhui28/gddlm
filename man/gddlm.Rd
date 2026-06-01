@@ -45,8 +45,9 @@ An object of class \code{gddlm} with the following components:
 \item \code{final_weights} The final weights from the MM algorithm. The weights sum to the total number of observations in the data. Weights comparably less than 1 indicate that the observation is down-weighted in the estimation process i.e., is considered more likely to be an outlying observation in the double linear model.
 \item \code{gamma_tuning} As per input argument.
 \item \code{gamma_divergence} The value of the gamma divergence at convergence.
-\item \code{V_mu_coefficients} The estimated covariance (inverse Fisher information) matrix for the coefficients corresponding to the mean part of the double linear model.
-\item \code{V_sigma_coefficients} The estimated covariance (inverse Fisher information) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
+\item \code{V_mu_coefficients} The estimated covariance (inverse observed information) matrix for the coefficients corresponding to the mean part of the double linear model.
+\item \code{V_sigma_coefficients} The estimated covariance (inverse observed information) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
+\item \code{V_full} The full estimated covariance (inverse observed information) matrix.
 }
 }
 \description{

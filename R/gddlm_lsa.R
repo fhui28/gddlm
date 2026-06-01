@@ -227,8 +227,9 @@ gddlm_lsa <- function(object,
         stop("Length of group_indicators must be equal to the number of parameters in the model.")
 
     #' ## Construct bread/Hessian matrix
-    bread_matrix <- bdiag(solve(object$V_mu_coefficients),
-                          solve(object$V_sigma_coefficients))
+    bread_matrix <- solve(object$V_full)
+    #bread_matrix <- bdiag(solve(object$V_mu_coefficients),
+    #                      solve(object$V_sigma_coefficients))
 
     ##-----------------------
     ## Joint selection on mu and sigma components

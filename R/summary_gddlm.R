@@ -47,9 +47,9 @@ summary.gddlm <- function(object,
     posthoc_mgcv_fit$coefficients <- c(object$mu_coefficients, object$sigma_coefficients)
     names(posthoc_mgcv_fit$coefficients)[1:length(object$mu_coefficients)] <- paste0("mu_", names(object$mu_coefficients))
     names(posthoc_mgcv_fit$coefficients)[-(1:length(object$mu_coefficients))] <- paste0("sigma_", names(object$sigma_coefficients))
-    posthoc_mgcv_fit$Vp <- as.matrix(Matrix::bdiag(object$V_mu_coefficients, object$V_sigma_coefficients))
-    posthoc_mgcv_fit$Ve <- as.matrix(Matrix::bdiag(object$V_mu_coefficients, object$V_sigma_coefficients))
-    posthoc_mgcv_fit$Vc <- as.matrix(Matrix::bdiag(object$V_mu_coefficients, object$V_sigma_coefficients))
+    posthoc_mgcv_fit$Vp <- object$V_full #as.matrix(Matrix::bdiag(object$V_mu_coefficients, object$V_sigma_coefficients))
+    posthoc_mgcv_fit$Ve <- object$V_full #as.matrix(Matrix::bdiag(object$V_mu_coefficients, object$V_sigma_coefficients))
+    posthoc_mgcv_fit$Vc <- object$V_full #as.matrix(Matrix::bdiag(object$V_mu_coefficients, object$V_sigma_coefficients))
 
     cat("Double linear model fitted using gamma divergence with gamma =",
         object$gamma_tuning,

@@ -39,8 +39,9 @@
 #' \item \code{final_weights} The final weights from the MM algorithm. The weights sum to the total number of observations in the data. Weights comparably less than 1 indicate that the observation is down-weighted in the estimation process i.e., is considered more likely to be an outlying observation in the double linear model.
 #' \item \code{gamma_tuning} As per input argument.
 #' \item \code{gamma_divergence} The value of the gamma divergence at convergence.
-#' \item \code{V_mu_coefficients} The estimated covariance (inverse Fisher information) matrix for the coefficients corresponding to the mean part of the double linear model.
-#' \item \code{V_sigma_coefficients} The estimated covariance (inverse Fisher information) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
+#' \item \code{V_mu_coefficients} The estimated covariance (inverse observed information) matrix for the coefficients corresponding to the mean part of the double linear model.
+#' \item \code{V_sigma_coefficients} The estimated covariance (inverse observed information) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
+#' \item \code{V_full} The full estimated covariance (inverse observed information) matrix.
 #' }
 #'
 #'
@@ -297,10 +298,14 @@ gddlm <- function(mu_formula,
     a <- ww * (gamma_tuning * Z^2 - 1 / sig^2)
     Hess_mu_coefficients <- (-1) * gamma_tuning / (n * S^2) * tcrossprod(A) + (1/S) * crossprod(mu_X, a * mu_X)
 
-    Z <- (Y - mu)^2 / sig^2 - 1
-    a <- ww * (0.5 * gamma_tuning * Z^2 - (Z + 1))
-    A <- apply(sig_X * ww * Z, 2, sum)
-    Hess_sigma_coefficients <- (-1) * gamma_tuning / (n * S^2) * tcrossprod(A) + (2 / S) * crossprod(sig_X, a * sig_X)
+    tau <- (Y - mu)^2 / sig^2 - 1
+    a <- ww * (gamma_tuning * tau^2 - 2 * (tau + 1))
+    A <- apply(sig_X * ww * tau, 2, sum)
+    c_i <- 1/sig^gamma_tuning / sum(1/sig^gamma_tuning)
+    Sigma2 <- crossprod(sig_X, c_i * sig_X) - tcrossprod(apply(c_i * sig_X, 2, sum))
+    Hess_sigma_coefficients <- (-1) * gamma_tuning / (n * S^2) * tcrossprod(A) + (1 / S) * crossprod(sig_X, a * sig_X) -  n * gamma_tuning^2/(1 + gamma_tuning) * Sigma2
+
+    Hess_musigma_coefficients <- (1 / S) * crossprod(mu_X, ww * (gamma_tuning * tau * Z - 2 * Z) * sig_X) - gamma_tuning / (n * S^2) * tcrossprod(apply(mu_X * ww * Z, 2, sum), apply(sig_X * ww * tau, 2, sum))
 
 
     ##-----------------------
@@ -315,6 +320,9 @@ gddlm <- function(mu_formula,
     dens <- dnorm(Y, mean = mu, sd = sig)
     ww <- dens^gamma_tuning / mean(dens^gamma_tuning)
 
+    fullinfo <- -rbind(cbind(Hess_mu_coefficients, Hess_musigma_coefficients),
+                      cbind(t(Hess_musigma_coefficients), Hess_sigma_coefficients))
+
     out <- list(call = match.call(),
                 mu_formula = mu_formula,
                 sigma_formula = sigma_formula,
@@ -328,12 +336,14 @@ gddlm <- function(mu_formula,
                 final_weights = ww,
                 gamma_tuning = gamma_tuning,
                 gamma_divergence = new_gamma_div,
-                V_mu_coefficients = solve(-Hess_mu_coefficients),
-                V_sigma_coefficients = solve(-Hess_sigma_coefficients))
+                V_full = solve(fullinfo))
+    out$V_mu_coefficients <- out$V_full[1:ncol(mu_X), 1:ncol(mu_X)]
+    out$V_sigma_coefficients <- out$V_full[-(1:ncol(mu_X)), -(1:ncol(mu_X))]
     names(out$mu_coefficients) <- colnames(mu_X)
     names(out$sigma_coefficients) <- colnames(sig_X)
     rownames(out$V_mu_coefficients) <- colnames(out$V_mu_coefficients) <- colnames(mu_X)
     rownames(out$V_sigma_coefficients) <- colnames(out$V_sigma_coefficients) <- colnames(sig_X)
+    rownames(out$V_full) <- colnames(out$V_full) <- c(colnames(mu_X), colnames(sig_X))
 
     class(out) <- "gddlm"
     return(out)

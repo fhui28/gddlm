@@ -120,9 +120,9 @@ appraise.gddlm <- function(model,
     posthoc_mgcv_fit$coefficients <- c(model$mu_coefficients, model$sigma_coefficients)
     names(posthoc_mgcv_fit$coefficients)[1:length(model$mu_coefficients)] <- paste0("mu_", names(model$mu_coefficients))
     names(posthoc_mgcv_fit$coefficients)[-(1:length(model$mu_coefficients))] <- paste0("sigma_", names(model$sigma_coefficients))
-    posthoc_mgcv_fit$Vp <- as.matrix(Matrix::bdiag(model$V_mu_coefficients, model$V_sigma_coefficients))
-    posthoc_mgcv_fit$Ve <- as.matrix(Matrix::bdiag(model$V_mu_coefficients, model$V_sigma_coefficients))
-    posthoc_mgcv_fit$Vc <- as.matrix(Matrix::bdiag(model$V_mu_coefficients, model$V_sigma_coefficients))
+    posthoc_mgcv_fit$Vp <- model$V_full #as.matrix(Matrix::bdiag(model$V_mu_coefficients, model$V_sigma_coefficients))
+    posthoc_mgcv_fit$Ve <- model$V_full #as.matrix(Matrix::bdiag(model$V_mu_coefficients, model$V_sigma_coefficients))
+    posthoc_mgcv_fit$Vc <- model$V_full #as.matrix(Matrix::bdiag(model$V_mu_coefficients, model$V_sigma_coefficients))
 
     posthoc_mgcv_fit$fitted.values <- cbind(model$mu_fitted, 1/model$sigma_fitted) #' See help file for fitted values with gaulss
     posthoc_mgcv_fit$linear.predictors <- cbind(posthoc_mgcv_fit$fitted.values[,1], #' See help file for fitted values with gaulss
