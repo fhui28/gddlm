@@ -116,7 +116,7 @@ coef.gddlm(fit_gddglm_choosegamma, type = "sigma")
 
 fitted.gddlm(fit_gddglm_choosegamma, type = "sigma")
 residuals.gddlm(fit_gddglm_choosegamma, type = "pearson") \%>\%
-hist(breaks = 20)
+hist(breaks = 20, main = "Pearson residuals")
 
 vcov.gddlm(fit_gddglm_choosegamma)
 vcov.gddlm(fit_gddglm_choosegamma, type = "sigma")

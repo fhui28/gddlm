@@ -104,7 +104,7 @@
 #'
 #' fitted.gddlm(fit_gddglm_choosegamma, type = "sigma")
 #' residuals.gddlm(fit_gddglm_choosegamma, type = "pearson") %>%
-#' hist(breaks = 20)
+#' hist(breaks = 20, main = "Pearson residuals")
 #'
 #' vcov.gddlm(fit_gddglm_choosegamma)
 #' vcov.gddlm(fit_gddglm_choosegamma, type = "sigma")
@@ -247,7 +247,7 @@ gddlm <- function(mu_formula,
         ww <- dens^gamma_tuning / mean(dens^gamma_tuning)
 
 
-        # UPDATING METHOD VERSION 2 -- *CURRENTLY DOES NOT WORK AS GAULSS FITTING IS NOT WEIGHTED*
+        # UPDATING METHOD VERSION 2 -- *CURRENTLY DOES NOT WORK AS GAULSS FITTING DOES NOT PERMIT WEIGHTS*
         # fit_update <- gam(list(mu_formula, sigma_formula),
         #                   data = data,
         #                   weights = ww,
@@ -264,12 +264,14 @@ gddlm <- function(mu_formula,
 
         # update sigma_coefficients -- Using Fisher scoring here instead of straight up Newton-Raphson
         resid <- Y - as.vector(mu_X %*% mu_coefficients)
-        H <- 2 * crossprod(sig_X, ww * sig_X) # Expected Fisher information
-        Grad <- apply(ww * resid^2 * sig_X / sig^2 - sig_X / (1 + gamma_tuning), 2, sum)
+        z <- mean(1/sig^gamma_tuning)
+        sig_weights <- 2 * ww + gamma_tuning^2/((1 + gamma_tuning) * z) * 1/sig^gamma_tuning
+        H <- crossprod(sig_X, sig_weights * sig_X) # Expected Fisher information
+        Grad <- apply((ww * resid^2 / sig^2 - ww) * sig_X + (gamma_tuning^2/((1 + gamma_tuning) * z) * 1/sig^gamma_tuning) * sig_X , 2, sum)
         sigma_coefficients <- sigma_coefficients + solve(H) %*% Grad
 
         # Convergence check
-        new_gamma_div <- n / gamma_tuning * log(mean(dens^gamma_tuning)) + gamma_tuning / (2 * (1 + gamma_tuning)) * sum(log(sig^2))
+        new_gamma_div <- n / gamma_tuning * log(mean(dens^gamma_tuning)) - n / (1 + gamma_tuning) * log(mean(1/sig^gamma_tuning))
         new_gamma_div <- new_gamma_div
         dd <- new_gamma_div - old_gamma_divergence
         if(r %% 10 == 0 & control$trace == TRUE)
