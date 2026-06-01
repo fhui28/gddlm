@@ -124,7 +124,7 @@ gamma_tuning = runcv$gamma_optimal)
 
 
 # Construct regularization path via least squares approximation with BAR penalty
- <- gddlm_lsa(object = fit_gddglm_choosegamma)
+fit_gddlm_choosegamma_lsa <- gddlm_lsa(object = fit_gddglm_choosegamma)
 
 ## Example of extracting estimates based minimizing BIC
 estimates(fit_gddlm_choosegamma_lsa, lambda = "BIC")
