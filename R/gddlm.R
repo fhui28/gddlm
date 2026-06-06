@@ -266,9 +266,9 @@ gddlm <- function(mu_formula,
         # update sigma_coefficients -- Using Fisher scoring here instead of straight up Newton-Raphson
         resid <- Y - as.vector(mu_X %*% mu_coefficients)
         z <- mean(1/sig^gamma_tuning)
+        Grad <- apply((ww * resid^2 / sig^2 - ww) * sig_X + (gamma_tuning/((1 + gamma_tuning) * z) * 1/sig^gamma_tuning) * sig_X , 2, sum)
         sig_weights <- 2 * ww + gamma_tuning^2/((1 + gamma_tuning) * z) * 1/sig^gamma_tuning
         H <- crossprod(sig_X, sig_weights * sig_X) # Expected Fisher information
-        Grad <- apply((ww * resid^2 / sig^2 - ww) * sig_X + (gamma_tuning^2/((1 + gamma_tuning) * z) * 1/sig^gamma_tuning) * sig_X , 2, sum)
         sigma_coefficients <- sigma_coefficients + solve(H) %*% Grad
 
         # Convergence check
@@ -284,7 +284,6 @@ gddlm <- function(mu_formula,
         if(dd < control$tol)
             break
         }
-
 
     ##-----------------------
     #' # Hessian (mu_coefficients and sigma_coefficients)
@@ -303,7 +302,7 @@ gddlm <- function(mu_formula,
     A <- apply(sig_X * ww * tau, 2, sum)
     c_i <- 1/sig^gamma_tuning / sum(1/sig^gamma_tuning)
     Sigma2 <- crossprod(sig_X, c_i * sig_X) - tcrossprod(apply(c_i * sig_X, 2, sum))
-    Hess_sigma_coefficients <- (-1) * gamma_tuning / (n * S^2) * tcrossprod(A) + (1 / S) * crossprod(sig_X, a * sig_X) -  n * gamma_tuning^2/(1 + gamma_tuning) * Sigma2
+    Hess_sigma_coefficients <- (1 / S) * crossprod(sig_X, a * sig_X) - gamma_tuning / (n * S^2) * tcrossprod(A) -  n * gamma_tuning^2/(1 + gamma_tuning) * Sigma2
 
     Hess_musigma_coefficients <- (1 / S) * crossprod(mu_X, ww * (gamma_tuning * tau * Z - 2 * Z) * sig_X) - gamma_tuning / (n * S^2) * tcrossprod(apply(mu_X * ww * Z, 2, sum), apply(sig_X * ww * tau, 2, sum))
 
@@ -321,7 +320,7 @@ gddlm <- function(mu_formula,
     ww <- dens^gamma_tuning / mean(dens^gamma_tuning)
 
     fullinfo <- -rbind(cbind(Hess_mu_coefficients, Hess_musigma_coefficients),
-                      cbind(t(Hess_musigma_coefficients), Hess_sigma_coefficients))
+                       cbind(t(Hess_musigma_coefficients), Hess_sigma_coefficients))
 
     out <- list(call = match.call(),
                 mu_formula = mu_formula,
