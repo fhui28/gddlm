@@ -97,8 +97,7 @@
 #' fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 #' sigma_formula = make_sigma_formula,
 #' data = data.frame(response = Y, X[,-1]),
-#' gamma_tuning = runcv$gamma_optimal,
-#' sandwich = FALSE)
+#' gamma_tuning = runcv$gamma_optimal)
 #'
 #'
 #' # Construct regularization path via least squares approximation with BAR penalty
