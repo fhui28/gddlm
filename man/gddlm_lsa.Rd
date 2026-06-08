@@ -85,7 +85,7 @@ library(mgcv)
 library(mvtnorm)
 
 # Simulation setting and data generation
-set.seed(012026)
+set.seed(062026)
 n <- 500
 p <- 25
 H <- abs(outer(1:p, 1:p, "-"))
@@ -120,7 +120,8 @@ data = data.frame(response = Y, X[,-1]))
 fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
 data = data.frame(response = Y, X[,-1]),
-gamma_tuning = runcv$gamma_optimal)
+gamma_tuning = runcv$gamma_optimal,
+sandwich = TRUE)
 
 
 # Construct regularization path via least squares approximation with BAR penalty

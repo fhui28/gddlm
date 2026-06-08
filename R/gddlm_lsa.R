@@ -62,7 +62,7 @@
 #' library(mvtnorm)
 #'
 #' # Simulation setting and data generation
-#' set.seed(012026)
+#' set.seed(062026)
 #' n <- 500
 #' p <- 25
 #' H <- abs(outer(1:p, 1:p, "-"))
@@ -97,7 +97,8 @@
 #' fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 #' sigma_formula = make_sigma_formula,
 #' data = data.frame(response = Y, X[,-1]),
-#' gamma_tuning = runcv$gamma_optimal)
+#' gamma_tuning = runcv$gamma_optimal,
+#' sandwich = FALSE)
 #'
 #'
 #' # Construct regularization path via least squares approximation with BAR penalty
@@ -226,7 +227,7 @@ gddlm_lsa <- function(object,
          if(length(group_indicators) != length(psihat))
         stop("Length of group_indicators must be equal to the number of parameters in the model.")
 
-    #' ## Construct bread/Hessian matrix
+    #' ## This either the bread of the sandwich depending on whether the gddlm object was constructed with sandwich = TRUE or not.
     bread_matrix <- solve(object$V_full)
     #bread_matrix <- bdiag(solve(object$V_mu_coefficients),
     #                      solve(object$V_sigma_coefficients))
