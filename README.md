@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit this file -->
 
-# gddlm – Robust double linear models using gamma divergence
+# gddlm: Robust double linear models using gamma divergence
 
 <!-- badges: start -->
 
@@ -27,8 +27,9 @@ the help of `pak` package using:
 
 # Getting started and example usage
 
-Please check the help file for the main `gddlm` function after
-installation. Alternatively, you can follow the basic example below.
+Please check the help files for the main `gddlm` and `gddlm_lsa`
+functions after installation. Alternatively, you can follow the basic
+example below.
 
 ``` r
 library(tidyverse)
@@ -42,8 +43,8 @@ Simulate data from a double linear model with (average 5%) outliers in
 the response variable
 
 ``` r
-set.seed(012026)
-n <- 250
+set.seed(062026)
+n <- 500
 p <- 10
 H <- abs(outer(1:p, 1:p, "-"))
 H <- 0.75^H
@@ -88,9 +89,6 @@ runcv <- cv_gddlm(mu_formula = make_mu_formula,
 #> Onto fold 8...
 #> Onto fold 9...
 #> Onto fold 10...
-```
-
-``` r
 
 fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
                                 sigma_formula = make_sigma_formula,
@@ -103,105 +101,97 @@ Demonstration of some of the functions available in the package
 ``` r
 fit_gddglm_choosegamma %>% 
     str
-#> List of 15
+#> List of 16
 #>  $ call                : language gddlm(mu_formula = make_mu_formula, sigma_formula = make_sigma_formula,      data = data.frame(response = Y, X[, | __truncated__
 #>  $ mu_formula          :Class 'formula'  language response ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10
-#>   .. ..- attr(*, ".Environment")=<environment: 0x5c80cbde12e8> 
+#>   .. ..- attr(*, ".Environment")=<environment: 0x6510dee4e950> 
 #>  $ sigma_formula       :Class 'formula'  language ~X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10
-#>   .. ..- attr(*, ".Environment")=<environment: 0x5c80cbe95960> 
-#>  $ model               :'data.frame':    250 obs. of  11 variables:
-#>   ..$ response: num [1:250] 0.02842 -1.13633 0.26403 1.51584 -0.00728 ...
-#>   ..$ X1      : num [1:250] -0.743 -1.604 -0.867 -0.973 -0.34 ...
-#>   ..$ X2      : num [1:250] -0.383 -1.58 0.505 -0.894 -0.606 ...
-#>   ..$ X3      : num [1:250] 0.08 -0.3233 0.2707 -0.6501 0.0689 ...
-#>   ..$ X4      : num [1:250] 0.54 -0.198 0.597 -0.684 -1.314 ...
-#>   ..$ X5      : num [1:250] 0.782 -1.444 0.765 -0.977 -0.963 ...
-#>   ..$ X6      : num [1:250] 0.0218 -1.0271 0.6141 -0.6685 0.1256 ...
-#>   ..$ X7      : num [1:250] -1.2093 -0.3664 0.3461 -0.132 0.0804 ...
-#>   ..$ X8      : num [1:250] -0.987 -0.552 -0.296 -0.351 0.268 ...
-#>   ..$ X9      : num [1:250] -0.0254 -0.8484 0.4772 -0.6726 0.5565 ...
-#>   ..$ X10     : num [1:250] 0.294 -1.241 0.768 -0.739 1.281 ...
-#>   ..- attr(*, "terms")=Classes 'terms', 'formula'  language response ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10
-#>   .. .. ..- attr(*, "variables")= language list(response, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10)
-#>   .. .. ..- attr(*, "factors")= int [1:11, 1:10] 0 1 0 0 0 0 0 0 0 0 ...
-#>   .. .. .. ..- attr(*, "dimnames")=List of 2
-#>   .. .. .. .. ..$ : chr [1:11] "response" "X1" "X2" "X3" ...
-#>   .. .. .. .. ..$ : chr [1:10] "X1" "X2" "X3" "X4" ...
-#>   .. .. ..- attr(*, "term.labels")= chr [1:10] "X1" "X2" "X3" "X4" ...
-#>   .. .. ..- attr(*, "order")= int [1:10] 1 1 1 1 1 1 1 1 1 1
-#>   .. .. ..- attr(*, "intercept")= int 1
-#>   .. .. ..- attr(*, "response")= int 1
-#>   .. .. ..- attr(*, ".Environment")=<environment: R_GlobalEnv> 
-#>   .. .. ..- attr(*, "predvars")= language list(response, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10)
-#>   .. .. ..- attr(*, "dataClasses")= Named chr [1:11] "numeric" "numeric" "numeric" "numeric" ...
-#>   .. .. .. ..- attr(*, "names")= chr [1:11] "response" "X1" "X2" "X3" ...
-#>  $ mu_coefficients     : Named num [1:11] -1.045 -1.11 1.253 -0.656 0.441 ...
+#>   .. ..- attr(*, ".Environment")=<environment: 0x6510deeb18b8> 
+#>  $ model               :'data.frame':    500 obs. of  11 variables:
+#>   ..$ response: num [1:500] -1.58 10.06 -1.85 -3.26 -2.56 ...
+#>   ..$ X1      : num [1:500] 1.892 0.674 -0.583 0.789 1.244 ...
+#>   ..$ X2      : num [1:500] 0.995 1.229 -0.407 -0.667 0.757 ...
+#>   ..$ X3      : num [1:500] 1.177 0.14 0.368 -0.295 0.785 ...
+#>   ..$ X4      : num [1:500] 0.873 -1.108 -0.143 -1.546 1.28 ...
+#>   ..$ X5      : num [1:500] 1.118 -0.349 0.742 -1.604 1.253 ...
+#>   ..$ X6      : num [1:500] 1.993 0.897 -0.146 -1.317 0.848 ...
+#>   ..$ X7      : num [1:500] 2.237 0.479 -0.235 -1.316 1.426 ...
+#>   ..$ X8      : num [1:500] 1.53 -1.364 -0.568 -1.973 -0.406 ...
+#>   ..$ X9      : num [1:500] 0.978 -0.65 -0.746 -2.823 -1.585 ...
+#>   ..$ X10     : num [1:500] 1.277 -2.057 0.391 -2.11 -0.594 ...
+#>  $ mu_coefficients     : Named num [1:11] -1.008 -0.714 0.795 -0.767 0.628 ...
 #>   ..- attr(*, "names")= chr [1:11] "(Intercept)" "X1" "X2" "X3" ...
-#>  $ sigma_coefficients  : Named num [1:11] 0.474 0.484 -0.144 0.156 -0.478 ...
+#>  $ sigma_coefficients  : Named num [1:11] 0.5218 0.5593 -0.0182 -0.0566 -0.4533 ...
 #>   ..- attr(*, "names")= chr [1:11] "(Intercept)" "X1" "X2" "X3" ...
-#>  $ mu_fitted           : num [1:250] -0.149 -1.551 0.98 -1.276 -2.366 ...
-#>  $ sigma_fitted        : num [1:250] 0.863 1.334 0.757 1.69 1.914 ...
-#>  $ raw_residuals       : num [1:250] 0.177 0.415 -0.716 2.792 2.359 ...
-#>  $ pearson_residuals   : num [1:250] 0.205 0.311 -0.946 1.652 1.232 ...
-#>  $ final_weights       : num [1:250] 1.389 1.209 1.272 0.759 0.876 ...
-#>  $ gamma_tuning        : num 0.3
-#>  $ gamma_divergence    : num -446
-#>  $ V_mu_coefficients   : num [1:11, 1:11] 0.01909 0.01114 -0.00399 0.00179 -0.00784 ...
+#>  $ mu_fitted           : num [1:500] -2 -1.59 -1.02 -3.17 -1 ...
+#>  $ sigma_fitted        : num [1:500] 3.55 5.61 1.58 6.03 2.98 ...
+#>  $ raw_residuals       : num [1:500] 0.4238 11.6476 -0.8268 -0.0924 -1.5523 ...
+#>  $ pearson_residuals   : num [1:500] 0.1194 2.077 -0.5239 -0.0153 -0.5205 ...
+#>  $ final_weights       : num [1:500] 0.893 0.358 1.133 0.744 0.907 ...
+#>  $ gamma_tuning        : num 0.35
+#>  $ gamma_divergence    : num -879
+#>  $ V_full              : num [1:22, 1:22] 1.02e-02 5.46e-03 1.14e-05 1.52e-04 -5.17e-03 ...
+#>   ..- attr(*, "dimnames")=List of 2
+#>   .. ..$ : chr [1:22] "(Intercept)" "X1" "X2" "X3" ...
+#>   .. ..$ : chr [1:22] "(Intercept)" "X1" "X2" "X3" ...
+#>  $ V_mu_coefficients   : num [1:11, 1:11] 1.02e-02 5.46e-03 1.14e-05 1.52e-04 -5.17e-03 ...
 #>   ..- attr(*, "dimnames")=List of 2
 #>   .. ..$ : chr [1:11] "(Intercept)" "X1" "X2" "X3" ...
 #>   .. ..$ : chr [1:11] "(Intercept)" "X1" "X2" "X3" ...
-#>  $ V_sigma_coefficients: num [1:11, 1:11] 0.003675 0.000201 0.000582 -0.000734 0.000143 ...
+#>  $ V_sigma_coefficients: num [1:11, 1:11] 2.00e-03 3.09e-04 2.73e-04 3.83e-05 -6.35e-04 ...
 #>   ..- attr(*, "dimnames")=List of 2
 #>   .. ..$ : chr [1:11] "(Intercept)" "X1" "X2" "X3" ...
 #>   .. ..$ : chr [1:11] "(Intercept)" "X1" "X2" "X3" ...
 #>  - attr(*, "class")= chr "gddlm"
-```
-
-``` r
 
 summary(fit_gddglm_choosegamma)
-#> Double linear model fitted using gamma divergence with gamma = 0.3 
+#> Double linear model fitted using gamma divergence with gamma = 0.35 
 #> Formula:
 #> response ~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10
-#> <environment: 0x5c80cbde12e8>
+#> <environment: 0x6510dee4e950>
 #> ~X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10
-#> <environment: 0x5c80cbe95960>
+#> <environment: 0x6510deeb18b8>
 #> 
 #> Parametric coefficients (mu and sigma):
 #>                    Estimate Std. Error z value Pr(>|z|)    
-#> mu_(Intercept)    -1.045292   0.138169  -7.565 3.87e-14 ***
-#> mu_X1             -1.110320   0.145234  -7.645 2.09e-14 ***
-#> mu_X2              1.252945   0.190682   6.571 5.00e-11 ***
-#> mu_X3             -0.655773   0.174682  -3.754 0.000174 ***
-#> mu_X4              0.441316   0.156681   2.817 0.004853 ** 
-#> mu_X5              0.335970   0.185683   1.809 0.070393 .  
-#> mu_X6             -0.097287   0.172607  -0.564 0.573007    
-#> mu_X7              0.056360   0.180755   0.312 0.755192    
-#> mu_X8             -0.190879   0.155283  -1.229 0.218984    
-#> mu_X9              0.208394   0.139987   1.489 0.136574    
-#> mu_X10            -0.037177   0.130372  -0.285 0.775522    
-#> sigma_(Intercept)  0.473962   0.060622   7.818 5.35e-15 ***
-#> sigma_X1           0.484237   0.091212   5.309 1.10e-07 ***
-#> sigma_X2          -0.144390   0.120539  -1.198 0.230966    
-#> sigma_X3           0.155572   0.119813   1.298 0.194130    
-#> sigma_X4          -0.478307   0.112075  -4.268 1.97e-05 ***
-#> sigma_X5           0.008951   0.137674   0.065 0.948159    
-#> sigma_X6          -0.026517   0.127788  -0.208 0.835611    
-#> sigma_X7           0.187717   0.116311   1.614 0.106546    
-#> sigma_X8          -0.267821   0.124803  -2.146 0.031878 *  
-#> sigma_X9           0.269928   0.129544   2.084 0.037189 *  
-#> sigma_X10         -0.365758   0.116662  -3.135 0.001717 ** 
+#> mu_(Intercept)    -1.008060   0.101094  -9.971  < 2e-16 ***
+#> mu_X1             -0.713515   0.095948  -7.436 1.03e-13 ***
+#> mu_X2              0.795016   0.105147   7.561 4.00e-14 ***
+#> mu_X3             -0.767158   0.115109  -6.665 2.65e-11 ***
+#> mu_X4              0.628127   0.125624   5.000 5.73e-07 ***
+#> mu_X5              0.319577   0.123739   2.583 0.009804 ** 
+#> mu_X6             -0.087774   0.124295  -0.706 0.480080    
+#> mu_X7             -0.127017   0.116278  -1.092 0.274678    
+#> mu_X8             -0.018457   0.120650  -0.153 0.878416    
+#> mu_X9              0.036340   0.120255   0.302 0.762510    
+#> mu_X10             0.012260   0.098188   0.125 0.900630    
+#> sigma_(Intercept)  0.521790   0.044774  11.654  < 2e-16 ***
+#> sigma_X1           0.559314   0.064404   8.684  < 2e-16 ***
+#> sigma_X2          -0.018241   0.079314  -0.230 0.818108    
+#> sigma_X3          -0.056611   0.079691  -0.710 0.477471    
+#> sigma_X4          -0.453271   0.080216  -5.651 1.60e-08 ***
+#> sigma_X5           0.056826   0.090392   0.629 0.529571    
+#> sigma_X6          -0.066878   0.085940  -0.778 0.436458    
+#> sigma_X7           0.291493   0.084689   3.442 0.000578 ***
+#> sigma_X8          -0.344956   0.088504  -3.898 9.71e-05 ***
+#> sigma_X9           0.004291   0.081395   0.053 0.957959    
+#> sigma_X10          0.084587   0.064117   1.319 0.187081    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> 
-#> Residual degrees of freedom: 228 
-#> Gamma divergence: -446.0563
-```
-
-``` r
+#> Residual degrees of freedom: 478 
+#> Gamma divergence: -878.8318
 
 appraise(fit_gddglm_choosegamma)
+#> Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
+#> ℹ Please use tidy evaluation idioms with `aes()`.
+#> ℹ See also `vignette("ggplot2-in-packages")` for more information.
+#> ℹ The deprecated feature was likely used in the gddlm package.
+#>   Please report the issue at <https://github.com/fhui28/gddlm/issues>.
+#> This warning is displayed once per session.
+#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+#> generated.
 ```
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
@@ -210,60 +200,48 @@ appraise(fit_gddglm_choosegamma)
 
 coef(fit_gddglm_choosegamma)
 #> (Intercept)          X1          X2          X3          X4          X5 
-#> -1.04529195 -1.11031958  1.25294484 -0.65577341  0.44131644  0.33597042 
+#> -1.00805981 -0.71351490  0.79501588 -0.76715837  0.62812689  0.31957701 
 #>          X6          X7          X8          X9         X10 
-#> -0.09728660  0.05635957 -0.19087916  0.20839436 -0.03717663
-```
-
-``` r
+#> -0.08777413 -0.12701708 -0.01845680  0.03633964  0.01226032
 coef(fit_gddglm_choosegamma, type = "sigma")
 #>  (Intercept)           X1           X2           X3           X4           X5 
-#>  0.473962012  0.484237441 -0.144390181  0.155571601 -0.478306825  0.008951375 
+#>  0.521789606  0.559313762 -0.018240721 -0.056610769 -0.453271344  0.056825892 
 #>           X6           X7           X8           X9          X10 
-#> -0.026517334  0.187716786 -0.267820596  0.269927990 -0.365758004
-```
-
-``` r
+#> -0.066877656  0.291493211 -0.344956407  0.004290749  0.084586991
 
 simulate(fit_gddglm_choosegamma, nsim = 10) %>% 
     str
-#> 'data.frame':    250 obs. of  10 variables:
-#>  $ sim_1 : num  -1.359 -0.207 1.076 -2.468 -2.218 ...
-#>  $ sim_2 : num  -0.627 -1.939 1.142 -0.408 -3.777 ...
-#>  $ sim_3 : num  -0.229 0.449 0.133 -1.167 -2.497 ...
-#>  $ sim_4 : num  1.278 0.164 0.852 -1.744 -2.32 ...
-#>  $ sim_5 : num  -0.26 -1.417 0.713 -0.631 -1.829 ...
-#>  $ sim_6 : num  0.444 -3.855 1.372 2.247 -3.665 ...
-#>  $ sim_7 : num  0.294 -1.776 2.388 -1.877 -5.421 ...
-#>  $ sim_8 : num  0.0443 -2.8441 -0.0128 -3.489 -5.0201 ...
-#>  $ sim_9 : num  -0.0269 -4.4495 1.3718 -0.8503 -0.8624 ...
-#>  $ sim_10: num  0.382 1.092 1.636 -1.481 -1.743 ...
-#>  - attr(*, "seed")= int [1:626] 10403 40 -1053275711 1919596251 509790488 1295980936 -960296891 94531324 -380244184 -532208171 ...
-```
-
-``` r
+#> 'data.frame':    500 obs. of  10 variables:
+#>  $ sim_1 : num  -2.38 -7.5 -2.93 -2.79 -2.11 ...
+#>  $ sim_2 : num  2.28 2.11 -3.84 11.19 1.87 ...
+#>  $ sim_3 : num  -11.39 2.15 -2.44 -11.69 -6.34 ...
+#>  $ sim_4 : num  -1.006 -9.068 -2.774 0.548 0.774 ...
+#>  $ sim_5 : num  -2.56 1.52 -1.45 -5.18 -5.17 ...
+#>  $ sim_6 : num  -5.80865 -10.07043 -0.00196 -6.77687 -3.1056 ...
+#>  $ sim_7 : num  -2.848 -4.076 -0.102 1.929 -1.035 ...
+#>  $ sim_8 : num  -0.316 -11.571 1.574 -11.66 -2.657 ...
+#>  $ sim_9 : num  -1.19 2.89 1.22 -5.32 3.23 ...
+#>  $ sim_10: num  -0.171 -6.551 -0.496 -5.883 2.888 ...
+#>  - attr(*, "seed")= int [1:626] 10403 80 -1437186727 2126329572 -488913071 -86937626 -1577149416 1537399949 -1012289428 1385622840 ...
 
 predict(fit_gddglm_choosegamma, predictor = "mu", se.fit = TRUE) %>% 
     head
-#>          fit    se.fit      lower       upper
-#> 1 -0.1489594 0.2277376 -0.5953169  0.29739812
-#> 2 -1.5512057 0.3037957 -2.1466344 -0.95577696
-#> 3  0.9795348 0.2255716  0.5374227  1.42164695
-#> 4 -1.2763706 0.1910713 -1.6508635 -0.90187764
-#> 5 -2.3659976 0.2775728 -2.9100302 -1.82196486
-#> 6 -0.7416024 0.4070302 -1.5393669  0.05616203
-```
-
-``` r
+#>          fit    se.fit     lower      upper
+#> 1 -2.0005503 0.2485797 -2.487758 -1.5133431
+#> 2 -1.5898385 0.3730717 -2.321046 -0.8586313
+#> 3 -1.0199697 0.1931697 -1.398575 -0.6413640
+#> 4 -3.1685645 0.3203783 -3.796494 -2.5406345
+#> 5 -1.0045116 0.2791003 -1.551538 -0.4574850
+#> 6 -0.9842505 0.3200514 -1.611540 -0.3569614
 predict(fit_gddglm_choosegamma, predictor = "sigma", se.fit = TRUE) %>% 
     head
 #>         fit   se.fit     lower    upper
-#> 1 0.8632558 1.200745 0.6031408 1.235550
-#> 2 1.3339486 1.215766 0.9095707 1.956328
-#> 3 0.7565296 1.202796 0.5268083 1.086424
-#> 4 1.6898861 1.116319 1.3620536 2.096625
-#> 5 1.9137916 1.235816 1.2637721 2.898148
-#> 6 3.6122831 1.287683 2.2006950 5.929304
+#> 1 3.5479285 1.157207 2.6649635 4.723441
+#> 2 5.6077849 1.238756 3.6858907 8.531791
+#> 3 1.5782589 1.128559 1.2451817 2.000432
+#> 4 6.0256004 1.203386 4.1918896 8.661454
+#> 5 2.9820786 1.187822 2.1281830 4.178585
+#> 6 0.9294103 1.254137 0.5962867 1.448638
 ```
 
 # If you find any bugs and issues…

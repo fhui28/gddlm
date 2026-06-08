@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 ```
 
 
-# gddlm -- Robust double linear models using gamma divergence
+# gddlm: Robust double linear models using gamma divergence
 
 <!-- badges: start -->
 
@@ -38,7 +38,7 @@ pak::pkg_install("fhui28/gddlm")
 
 # Getting started and example usage
 
-Please check the help file for the main `gddlm` function after installation. Alternatively, you can follow the basic example below.
+Please check the help files for the main `gddlm` and `gddlm_lsa` functions after installation. Alternatively, you can follow the basic example below.
 
 ```{r message=FALSE}
 library(tidyverse)
@@ -51,8 +51,8 @@ library(gddlm)
 Simulate data from a double linear model with (average 5%) outliers in the response variable
 
 ```{r}
-set.seed(012026)
-n <- 250
+set.seed(062026)
+n <- 500
 p <- 10
 H <- abs(outer(1:p, 1:p, "-"))
 H <- 0.75^H
