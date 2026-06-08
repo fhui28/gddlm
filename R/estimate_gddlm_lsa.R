@@ -7,7 +7,7 @@
 #' [gddlm_lsa()] fit.
 #'
 #' @param object An object of class `gddlm_lsa`.
-#' @param lambda The tuning parameter at which estimates are estimated. This can either be a string taking values e.g., `BIC` corresponding to taking the estimates based on minimizing of these information criterion, or a numeric value corresponding to specific tuning parameter value. Similar to [glmnet::coef.glmnet()], in the case of the latter it uses linear interpolation to construct parameter estimates for values of `lambda` that do not coincide with those used in the fitting algorithm.
+#' @param lambda The tuning parameter at which estimates are estimated. This can either be a string taking values e.g., `AIC`, `BIC`, `EBIC` and `EBIC2`, corresponding to taking the estimates based on minimizing of these information criterion (see [gddlm_lsa()] for more information on these criterion), or a numeric value corresponding to specific tuning parameter value. Similar to [glmnet::coef.glmnet()], in the case of the latter it uses linear interpolation to construct parameter estimates for values of `lambda` that do not coincide with those used in the fitting algorithm.
 #' @param ... Not used.
 #'
 #'
