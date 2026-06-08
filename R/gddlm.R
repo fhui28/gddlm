@@ -56,7 +56,7 @@
 #' library(mvtnorm)
 #'
 #' # Simulation setting and data generation
-#' set.seed(012026)
+#' set.seed(062026)
 #' n <- 250
 #' p <- 10
 #' H <- abs(outer(1:p, 1:p, "-"))
