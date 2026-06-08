@@ -9,6 +9,7 @@ gddlm(
   sigma_formula,
   data,
   gamma_tuning = 0.1,
+  sandwich = FALSE,
   control = list(max_iteration = 1000, tol = 1e-05, dampening = c(1, 1), trace = FALSE)
 )
 }
@@ -20,6 +21,8 @@ gddlm(
 \item{data}{A data frame containing the response and covariates used in \code{mu_formula} and \code{sigma_formula}.}
 
 \item{gamma_tuning}{A positive tuning parameter for the gamma divergence, and typically less than 1 for fitting robust double linear models. The closer this value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in \code{\link[mgcv:gam]{mgcv::gam()}} with the \code{\link[mgcv:gaulss]{mgcv::gaulss()}} family, or in the \code{\link[lmls:lmls]{lmls::lmls()}} function.}
+
+\item{sandwich}{Should the function return sandwich standard errors for the coefficient estimates in the mean and standard deviation parts of the double linear model? Defaults to FALSE, in which case the function returns standard errors based on the inverse of the observed information matrix i.e., the bread matrix only, based on the gamma divergence.}
 
 \item{control}{A list of control parameters for fitting the gamma divergence double linear model. The list can contain the following elements:
 \itemize{
@@ -45,9 +48,9 @@ An object of class \code{gddlm} with the following components:
 \item \code{final_weights} The final weights from the MM algorithm. The weights sum to the total number of observations in the data. Weights comparably less than 1 indicate that the observation is down-weighted in the estimation process i.e., is considered more likely to be an outlying observation in the double linear model.
 \item \code{gamma_tuning} As per input argument.
 \item \code{gamma_divergence} The value of the gamma divergence at convergence.
-\item \code{V_mu_coefficients} The estimated covariance (inverse observed information) matrix for the coefficients corresponding to the mean part of the double linear model.
-\item \code{V_sigma_coefficients} The estimated covariance (inverse observed information) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
-\item \code{V_full} The full estimated covariance (inverse observed information) matrix.
+\item \code{V_mu_coefficients} The estimated (inverse observed information or sandwich covariance) matrix for the coefficients corresponding to the mean part of the double linear model.
+\item \code{V_sigma_coefficients} The estimated (inverse observed information or sandwich covariance) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
+\item \code{V_full} The full estimated (inverse observed information or sandwich covariance) matrix.
 }
 }
 \description{
@@ -68,7 +71,7 @@ library(mgcv)
 library(mvtnorm)
 
 # Simulation setting and data generation
-set.seed(012026)
+set.seed(062026)
 n <- 250
 p <- 10
 H <- abs(outer(1:p, 1:p, "-"))
