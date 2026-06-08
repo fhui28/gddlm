@@ -12,6 +12,7 @@
 #' @param sigma_formula A single-sided formula describing how the log of the standard deviation is regressed against the covariates in the double linear model.
 #' @param data A data frame containing the response and covariates used in `mu_formula` and `sigma_formula`.
 #' @param gamma_tuning A positive tuning parameter for the gamma divergence, and typically less than 1 for fitting robust double linear models. The closer this value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in [mgcv::gam()] with the [mgcv::gaulss()] family, or in the [lmls::lmls()] function.
+#' @param sandwich Should the function return sandwich standard errors for the coefficient estimates in the mean and standard deviation parts of the double linear model? Defaults to FALSE, in which case the function returns standard errors based on the inverse of the observed information matrix i.e., the bread matrix only, based on the gamma divergence.
 #' @param control A list of control parameters for fitting the gamma divergence double linear model. The list can contain the following elements:
 #' \itemize{
 #' \item \code{max_iteration}: The maximum number of iterations for the MM algorithm.
@@ -39,11 +40,10 @@
 #' \item \code{final_weights} The final weights from the MM algorithm. The weights sum to the total number of observations in the data. Weights comparably less than 1 indicate that the observation is down-weighted in the estimation process i.e., is considered more likely to be an outlying observation in the double linear model.
 #' \item \code{gamma_tuning} As per input argument.
 #' \item \code{gamma_divergence} The value of the gamma divergence at convergence.
-#' \item \code{V_mu_coefficients} The estimated covariance (inverse observed information) matrix for the coefficients corresponding to the mean part of the double linear model.
-#' \item \code{V_sigma_coefficients} The estimated covariance (inverse observed information) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
-#' \item \code{V_full} The full estimated covariance (inverse observed information) matrix.
+#' \item \code{V_mu_coefficients} The estimated (inverse observed information or sandwich covariance) matrix for the coefficients corresponding to the mean part of the double linear model.
+#' \item \code{V_sigma_coefficients} The estimated (inverse observed information or sandwich covariance) matrix for the coefficients corresponding to the log standard deviation part of the double linear model.
+#' \item \code{V_full} The full estimated (inverse observed information or sandwich covariance) matrix.
 #' }
-#'
 #'
 #' @author
 #' Francis K.C. Hui <francis.hui@anu.edu.au>
@@ -195,7 +195,11 @@ gddlm <- function(mu_formula,
                   sigma_formula,
                   data,
                   gamma_tuning = 0.1,
-                  control = list(max_iteration = 1e3, tol = 1e-5, dampening = c(1,1), trace = FALSE)) {
+                  sandwich = FALSE,
+                  control = list(max_iteration = 1e3,
+                                 tol = 1e-5,
+                                 dampening = c(1,1),
+                                 trace = FALSE)) {
 
     ##-----------------------
     #' # Checks and balances
@@ -308,7 +312,7 @@ gddlm <- function(mu_formula,
 
 
     ##-----------------------
-    #' # Final wrap up
+    #' # Final wrap up and construction of standard errors for the coefficient estimates in the mean and standard deviation parts of the double linear model, based on the inverse of the observed information matrix for the gamma divergence function or optionally sandwich standard errors\
     ##-----------------------
     # C <- ( (1 + gamma_tuning)^(-1/2) * (2*pi*sig^2)^(-gamma_tuning/2) )^(gamma_tuning / (1 + gamma_tuning))
     # dens <- dnorm(Y, mean = mu, sd = sig)
@@ -321,6 +325,24 @@ gddlm <- function(mu_formula,
 
     fullinfo <- -rbind(cbind(Hess_mu_coefficients, Hess_musigma_coefficients),
                        cbind(t(Hess_musigma_coefficients), Hess_sigma_coefficients))
+    V_full <- solve(fullinfo) #' Bread matrix
+    rm(fullinfo)
+
+
+    if(!sandwich) {
+        V_full <- V_full
+        rm(a, A, Z, tau, c_i, S)
+        }
+    if(sandwich) {
+        grad_betai <- mu_X * ww * Z
+        grad_alphai <- sig_X * (ww * tau + n * gamma_tuning/(1 + gamma_tuning) * c_i)
+        all_gradi <- cbind(grad_betai, grad_alphai)
+        meat_full <- matrix(rowSums(apply(all_gradi, 1, tcrossprod)), ncol(all_gradi), ncol(all_gradi))  #' Meat matrix
+
+        V_full <- V_full %*% meat_full %*% V_full
+        rm(grad_alphai, grad_betai, a, A, Z, tau, c_i, S)
+        }
+
 
     out <- list(call = match.call(),
                 mu_formula = mu_formula,
@@ -335,9 +357,9 @@ gddlm <- function(mu_formula,
                 final_weights = ww,
                 gamma_tuning = gamma_tuning,
                 gamma_divergence = new_gamma_div,
-                V_full = solve(fullinfo))
-    out$V_mu_coefficients <- out$V_full[1:ncol(mu_X), 1:ncol(mu_X)]
-    out$V_sigma_coefficients <- out$V_full[-(1:ncol(mu_X)), -(1:ncol(mu_X))]
+                V_full = V_full)
+    out$V_mu_coefficients <- V_full[1:ncol(mu_X), 1:ncol(mu_X)]
+    out$V_sigma_coefficients <- V_full[-(1:ncol(mu_X)), -(1:ncol(mu_X))]
     names(out$mu_coefficients) <- colnames(mu_X)
     names(out$sigma_coefficients) <- colnames(sig_X)
     rownames(out$V_mu_coefficients) <- colnames(out$V_mu_coefficients) <- colnames(mu_X)
