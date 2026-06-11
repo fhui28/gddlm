@@ -190,7 +190,7 @@ cv_gddlm <- function(mu_formula,
                 }
 
             #' CV error is the mean deviance for the selected observations in the test set
-            return(colMeans(all_deviance[final_selection,]))
+            return(colMeans(all_deviance[final_selection,,drop=FALSE]))
             }
 
         CV_error <- foreach(fold = 1:nfolds, .combine = rbind) %dopar% {
