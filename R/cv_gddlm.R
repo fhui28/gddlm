@@ -137,7 +137,7 @@ cv_gddlm <- function(mu_formula,
                 }
 
             #' CV error is the mean deviance for the selected observations in the test set
-            final_deviance <- colMeans(all_deviance[final_selection,])
+            final_deviance <- colMeans(all_deviance[final_selection,,drop=FALSE])
             CV_error[fold, ] <- final_deviance
             rm(all_weights, all_deviance, sel_non_outliers, final_selection, final_deviance, fit, cw_gamma)
             }
