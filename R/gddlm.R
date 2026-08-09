@@ -312,17 +312,31 @@ gddlm <- function(mu_formula,
 
 
     ##-----------------------
-    #' # Final wrap up and construction of standard errors for the coefficient estimates in the mean and standard deviation parts of the double linear model, based on the inverse of the observed information matrix for the gamma divergence function or optionally sandwich standard errors\
+    #' # Final wrap up and construction of standard errors for the coefficient estimates in the mean and standard deviation parts of the double linear model, based on the inverse of the observed information matrix for the gamma divergence function or optionally sandwich standard errors
     ##-----------------------
-    # C <- ( (1 + gamma_tuning)^(-1/2) * (2*pi*sig^2)^(-gamma_tuning/2) )^(gamma_tuning / (1 + gamma_tuning))
-    # dens <- dnorm(Y, mean = mu, sd = sig)
-    # term1 <- dens^(gamma_tuning) * 2*(gamma_tuning * (Y - mu)^2 - sig^2) / ( sig^4 * C)
-    # term2 <- dens^(2*gamma_tuning) * (Y - mu)^2 / ( sig^4 * C^2)
-    # Hscore <- mean(term1 + term2)
+    #' ## Adapt the idea of (https://doi.org/10.3390/e23091147) to compute the Hyvarinen score (H-score) for the double linear model
+    # Cgammasigma2 <- ((1 + gamma_tuning)^(-0.5) * (2 * pi * sig^2)^(-0.5 * gamma_tuning))^(gamma_tuning / (1 + gamma_tuning))
+    # Hscore1 <- 2 * (gamma_tuning * (Y - mu)^2 - sig^2) / (sig^4 * Cgammasigma2) * dnorm(Y, mean = mu, sd = sig)^gamma_tuning
+    # Hscore2 <- (Y - mu)^2 / (sig^4 * Cgammasigma2^2) * dnorm(Y, mean = mu, sd = sig)^(2 * gamma_tuning)
+    # Hscore <- mean(Hscore1 + Hscore2)
+    # Hscore1m <- mean(Hscore1)
+    # Hscore2m <- mean(Hscore2)
+    # rm(Hscore1, Hscore2, Cgammasigma2)
+
+    # # Log normal density
+    # log_phi <- dnorm(Y, mean = mu, sd = sig,log = TRUE)
+    # log_w <- gamma_tuning * log_phi
+    # log_w <- log_w - max(log_w)
+    # w <- exp(log_w)
+    # w <- w / sum(w)
+    # Hscore1_i <- 2 * w * (-1/sig^2 + gamma_tuning * (1 - w) * (Y - mu)^2 * 1/sig^4)
+    # Hscore2_i <- w^2 * (Y - mu)^2 * 1/sig^4
+    # Hscore1 <- mean(Hscore1_i)
+    # Hscore2 <- mean(Hscore2_i)
+    # Hscore <- Hscore1 + Hscore2
 
     dens <- dnorm(Y, mean = mu, sd = sig)
     ww <- dens^gamma_tuning / mean(dens^gamma_tuning)
-
     fullinfo <- -rbind(cbind(Hess_mu_coefficients, Hess_musigma_coefficients),
                        cbind(t(Hess_musigma_coefficients), Hess_sigma_coefficients))
     V_full <- solve(fullinfo) #' Bread matrix
@@ -357,9 +371,12 @@ gddlm <- function(mu_formula,
                 final_weights = ww,
                 gamma_tuning = gamma_tuning,
                 gamma_divergence = new_gamma_div,
+                #Hscore = Hscore,
+                #Hscore1m = Hscore1m,
+                #Hscore2m = Hscore2m,
                 V_full = V_full)
-    out$V_mu_coefficients <- V_full[1:ncol(mu_X), 1:ncol(mu_X)]
-    out$V_sigma_coefficients <- V_full[-(1:ncol(mu_X)), -(1:ncol(mu_X))]
+    out$V_mu_coefficients <- V_full[1:ncol(mu_X), 1:ncol(mu_X), drop = FALSE]
+    out$V_sigma_coefficients <- V_full[-(1:ncol(mu_X)), -(1:ncol(mu_X)), drop = FALSE]
     names(out$mu_coefficients) <- colnames(mu_X)
     names(out$sigma_coefficients) <- colnames(sig_X)
     rownames(out$V_mu_coefficients) <- colnames(out$V_mu_coefficients) <- colnames(mu_X)
