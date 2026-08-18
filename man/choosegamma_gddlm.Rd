@@ -46,6 +46,7 @@ An object of class \code{choosegamma_gddlm} with the following components:
 \itemize{
 \item \code{call} The matched call.
 \item \code{gamma_seq} Same as the input argument \code{gamma_seq}.
+\item \code{sel_cleanobs} The indices of the clean observations identified from the pre-fit.
 \item \code{gamma_optimal_mean} The optimal value of \eqn{\gamma} selected using the bootstrap, based on the with the lowest mean predictive deviance, across the bootstrap samples.
 \item \code{gamma_optimal_median} The optimal value of \eqn{\gamma} selected using the bootstrap, based on the with the lowest median predictive deviance, across the bootstrap samples.
 \item \code{all_bootstrap_deviance} A matrix of the bootstrap predictive deviances for each bootstrap dataset (rows) and each candidate value of \eqn{\gamma} (columns).
