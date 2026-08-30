@@ -1,5 +1,6 @@
 ^LICENSE\.md$
 ^gddlm\.Rproj$
+^R/choosegamma_gddlm.R
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^cran-comments\.md$
