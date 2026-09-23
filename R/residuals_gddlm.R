@@ -15,8 +15,8 @@
 #' Francis K.C. Hui <francis.hui@anu.edu.au>
 #'
 #' @examples
-#' \dontrun{
-#' See the main `gddlm` help file for examples.
+#' \donttest{
+#' # See the main `gddlm` help file for examples.
 #' }
 #'
 #' @export
