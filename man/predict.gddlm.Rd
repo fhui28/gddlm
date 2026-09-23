@@ -38,7 +38,7 @@
 Takes a fitted double linear model produced by \code{\link[=gddlm]{gddlm()}} and produces predictions given a new set of values for the model covariates or the original values used for the model fit. Predictions can be accompanied by standard errors and uncertainty intervals based on a large sample normality assumption for the distribution of the model coefficients. The routine can optionally return the matrix by which the model coefficients must be pre-multiplied in order to yield the values of the linear predictor.
 }
 \examples{
-\donttest{
+\dontrun{
 # See the main `gddlm` help file for examples.
 }
 

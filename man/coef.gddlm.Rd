@@ -22,7 +22,7 @@ A vector of coefficients
 Extracts estimated coefficients in either the mean or the log standard deviation part of the fitted robust double linear model.
 }
 \examples{
-\donttest{
+\dontrun{
 # See the main `gddlm` help file for examples.
 }
 

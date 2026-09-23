@@ -25,7 +25,7 @@
 #'
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # See help function for the gddlm_lsa() function for an example
 #' }
 #'

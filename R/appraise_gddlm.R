@@ -29,7 +29,7 @@
 #' Francis K.C. Hui <francis.hui@anu.edu.au>
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # See the main `gddlm` help file for examples.
 #' }
 #'

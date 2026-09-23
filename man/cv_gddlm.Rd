@@ -66,7 +66,7 @@ The deviance is used as the measure of predictive accuracy in the cross-validati
 Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
 }
 \examples{
-\donttest{
+\dontrun{
 # See the main `gddlm` help file for examples.
 }
 

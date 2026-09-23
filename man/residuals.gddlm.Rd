@@ -22,7 +22,7 @@ A vector of residuals.
 Computes residuals from a fitted \code{gddlm} object. The residuals can be of different types: \code{response} corresponds to the raw residuals, \code{deviance} corresponds to the deviance residuals (note these are slightly ad-hoc as the concept of deviance itself is not clearly defined in the case of gamma divergence; here the deviance residual is computed assuming normally distributed errors, and so \strong{it is equivalent to Pearson residuals}), \code{pearson} corresponds to the Pearson residuals, and \code{working} corresponds to the working residuals (which in this case is equivalent to the raw response residuals).
 }
 \examples{
-\donttest{
+\dontrun{
 # See the main `gddlm` help file for examples.
 }
 

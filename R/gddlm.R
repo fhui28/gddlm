@@ -49,7 +49,7 @@
 #' Francis K.C. Hui <francis.hui@anu.edu.au>
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(tidyverse)
 #' library(GJRM)
 #' library(mgcv)

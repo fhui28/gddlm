@@ -29,7 +29,7 @@ A summary of the fitted \code{gddlm} object.
 Takes a fitted \code{gddlm} object and produces some useful summaries of the fitted model. Note the summary uses \code{\link[mgcv:summary.gam]{mgcv::summary.gam()}} in the background to produce the summary, so please see the help file for that function for more details.
 }
 \examples{
-\donttest{
+\dontrun{
 # See the main `gddlm` help file for examples.
 }
 

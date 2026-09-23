@@ -19,7 +19,7 @@
 This function prints out some details of the fitted \code{gddlm} object in a human-readable format. This includes the tuning parameter used, the formula, estimated coefficients, and the gamma divergence.
 }
 \examples{
-\donttest{
+\dontrun{
 # See the main `gddlm` help file for examples.
 }
 

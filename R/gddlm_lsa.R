@@ -54,7 +54,7 @@
 #'
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(tidyverse)
 #' library(GJRM)
 #' library(gamlss.lasso)
