@@ -12,7 +12,7 @@ cv_gddlm(
   nfolds = 10,
   fold_seed = NULL,
   foldid = NULL,
-  ratio_threshold = 2,
+  threshold = 1,
   plotit = FALSE,
   doparallel = FALSE,
   num_cores = NULL,
@@ -34,7 +34,7 @@ cv_gddlm(
 
 \item{foldid}{An optional vector of values between 1 and \code{nfolds} identifying which fold each observation is in. If supplied, then this overrides the \code{nfolds} argument. Otherwise it defaults to \code{NULL}, in which case the folds are randomly assigned.}
 
-\item{ratio_threshold}{A numeric value that should be greater than 1. To classify how many observations in the test set are to be treated as outliers, the procedure finds the largest ratio of the sorted mean gamma divergence density weights that exceeds this threshold. All observations prior to this are then deemed as outliers in that test fold. Default is 2.}
+\item{threshold}{A numeric value that should be greater than zero. To classify observations in the test set that are to be treated as outliers, the procedure finds observations who predicted mean gamma divergence density weights is less than this threshold. Default is 1.}
 
 \item{plotit}{Should a plot be produced showing the cross-validation error against the candidate values of \eqn{\gamma}? Defaults to \code{FALSE}.}
 
@@ -66,8 +66,8 @@ The deviance is used as the measure of predictive accuracy in the cross-validati
 Please see manuscript for more details (currently in preparation) as to exactly how the cross-validation procedure works.
 }
 \examples{
-\dontrun{
-See the main `gddlm` help file for examples.
+\donttest{
+# See the main `gddlm` help file for examples.
 }
 
 }

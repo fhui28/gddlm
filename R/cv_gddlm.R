@@ -12,7 +12,7 @@
 #' @param nfolds The number of folds to use in the cross-validation. Default is 10.
 #' @param fold_seed An optional value to set the random seed for the fold assignment. Default is \code{NULL} i.e., random seed.
 #' @param foldid An optional vector of values between 1 and `nfolds` identifying which fold each observation is in. If supplied, then this overrides the `nfolds` argument. Otherwise it defaults to `NULL`, in which case the folds are randomly assigned.
-#' @param ratio_threshold A numeric value that should be greater than 1. To classify how many observations in the test set are to be treated as outliers, the procedure finds the largest ratio of the sorted mean gamma divergence density weights that exceeds this threshold. All observations prior to this are then deemed as outliers in that test fold. Default is 2.
+#' @param threshold A numeric value that should be greater than zero. To classify observations in the test set that are to be treated as outliers, the procedure finds observations who predicted mean gamma divergence density weights is less than this threshold. Default is 1.
 #' @param plotit Should a plot be produced showing the cross-validation error against the candidate values of \eqn{\gamma}? Defaults to `FALSE`.
 #' @param doparallel Should parallel computing be used to perform the cross-validation? Defaults to `FALSE`.
 #' @param num_cores If `do_parallel = TRUE`, then this argument controls the number of cores used. Defaults to \code{NULL}, in which case it is set to `parallel::detectCores() - 2`.
@@ -37,11 +37,9 @@
 #' Francis K.C. Hui <francis.hui@anu.edu.au>
 #'
 #' @examples
-#' \dontrun{
-#' See the main `gddlm` help file for examples.
+#' \donttest{
+#' # See the main `gddlm` help file for examples.
 #' }
-#'
-#' @export
 #'
 #' @importFrom doParallel registerDoParallel
 #' @importFrom ggplot2 ggplot geom_point geom_line theme_bw labs aes
@@ -49,7 +47,11 @@
 #' @importFrom foreach foreach %dopar% %do%
 #' @importFrom rlang .data
 #' @importFrom stats median
+#'
+#'
+#' @export
 #' @md
+#'
 cv_gddlm <- function(mu_formula,
                      sigma_formula,
                      data,
@@ -57,7 +59,7 @@ cv_gddlm <- function(mu_formula,
                      nfolds = 10,
                      fold_seed = NULL,
                      foldid = NULL,
-                     ratio_threshold = 2,
+                     threshold = 1,
                      plotit = FALSE,
                      doparallel = FALSE,
                      num_cores = NULL,
@@ -97,24 +99,23 @@ cv_gddlm <- function(mu_formula,
                              sigma_formula = sigma_formula,
                              data = data[sel_train, ],
                              gamma_tuning = cw_gamma,
-                             ...)
+                             ...
+                             )
 
                 test_mu <- predict.gddlm(fit,
-                                   newdata = data[sel_test,],
-                                   predictor = "mu",
-                                   type = "response",
-                                   se.fit = FALSE)
+                                         newdata = data[sel_test,],
+                                         predictor = "mu",
+                                         type = "response",
+                                         se.fit = FALSE)
                 test_sigma <- predict.gddlm(fit,
-                                      newdata = data[sel_test,],
-                                      predictor = "sigma",
-                                      type = "response",
-                                      se.fit = FALSE)
+                                            newdata = data[sel_test,],
+                                            predictor = "sigma",
+                                            type = "response",
+                                            se.fit = FALSE)
 
                 fake_gam_mu <- mgcv::gam(mu_formula, data = data[sel_test,], family = gaussian())
                 Y <- model.frame(fake_gam_mu)
                 Y <- as.vector(model.response(Y))
-                rm(fake_gam_mu)
-
                 dens <- dnorm(Y, mean = test_mu, sd = test_sigma)
                 ww <- length(sel_test) * dens^cw_gamma / sum(dens^cw_gamma)
                 all_weights[, l] <- ww
@@ -122,24 +123,13 @@ cv_gddlm <- function(mu_formula,
                 rm(Y, test_mu, test_sigma, dens, ww)
                 }
 
-            #' ## Determine the mean gamma divergence density weight for each observation in the test test, averaged across all candidate gamma values
-            #' Then sort these weights, and compute the ratio of the current average weight on the previous average weight
-            sel_non_outliers <- sort(rowMeans(all_weights))[-1]/sort(rowMeans(all_weights))[-nrow(all_weights)]
-
-            #' ## If none of the ratios are greater than a pre-specified threshold, then use all observations in the test set to compute the CV error for this fold
-            #' Otherwise, find the largest ratio exceeding the pre-specified threshold, and declare all observations prior to this as being outliers. The remaining observations are then used to compute the CV error for this fold.
-            #' The intuition is that if there is a large jump in the average weights, then this indicates that the observations prior to this jump are outliers (because they weights are relative small compared to the remaining observations).
-            if(all(sel_non_outliers < ratio_threshold))
-                final_selection <- 1:nrow(all_weights)
-            if(any(sel_non_outliers > ratio_threshold)) {
-                sel_non_outliers <- which.max(sel_non_outliers)
-                final_selection <- order(rowMeans(all_weights))[-(1:sel_non_outliers)]
-                }
+            mean_weights <- apply(all_weights, 1, mean, na.rm = TRUE)
+            #sel_nonoutliers <- which(mean_weights > quantile(mean_weights, cleanobs_quantile))
+            sel_nonoutliers <- which(mean_weights > threshold)
 
             #' CV error is the mean deviance for the selected observations in the test set
-            final_deviance <- colMeans(all_deviance[final_selection,,drop=FALSE])
+            final_deviance <- apply(all_deviance[sel_nonoutliers,,drop=FALSE], 2, mean, na.rm = TRUE)
             CV_error[fold, ] <- final_deviance
-            rm(all_weights, all_deviance, sel_non_outliers, final_selection, final_deviance, fit, cw_gamma)
             }
         }
 
@@ -159,15 +149,15 @@ cv_gddlm <- function(mu_formula,
                              ...)
 
                 test_mu <- predict.gddlm(fit,
-                                   newdata = data[sel_test,],
-                                   predictor = "mu",
-                                   type = "response",
-                                   se.fit = FALSE)
+                                         newdata = data[sel_test,],
+                                         predictor = "mu",
+                                         type = "response",
+                                         se.fit = FALSE)
                 test_sigma <- predict.gddlm(fit,
-                                      newdata = data[sel_test,],
-                                      predictor = "sigma",
-                                      type = "response",
-                                      se.fit = FALSE)
+                                            newdata = data[sel_test,],
+                                            predictor = "sigma",
+                                            type = "response",
+                                            se.fit = FALSE)
 
                 fake_gam_mu <- mgcv::gam(mu_formula, data = data[sel_test,], family = gaussian())
                 Y <- model.frame(fake_gam_mu)
@@ -181,16 +171,12 @@ cv_gddlm <- function(mu_formula,
                 rm(Y, test_mu, test_sigma, dens, ww)
                 }
 
-            sel_non_outliers <- sort(rowMeans(all_weights))[-1]/sort(rowMeans(all_weights))[-nrow(all_weights)]
-            if(all(sel_non_outliers < ratio_threshold))
-                final_selection <- 1:nrow(all_weights)
-            if(any(sel_non_outliers > ratio_threshold)) {
-                sel_non_outliers <- which.max(sel_non_outliers)
-                final_selection <- order(rowMeans(all_weights))[-(1:sel_non_outliers)]
-                }
+            mean_weights <- apply(all_weights, 1, mean, na.rm = TRUE)
+            sel_nonoutliers <- which(mean_weights > threshold)
+            #sel_nonoutliers <- which(mean_weights > quantile(mean_weights, cleanobs_quantile))
 
             #' CV error is the mean deviance for the selected observations in the test set
-            return(colMeans(all_deviance[final_selection,,drop=FALSE]))
+            return(apply(all_deviance[sel_nonoutliers,,drop=FALSE], 2, mean, na.rm = TRUE))
             }
 
         CV_error <- foreach(fold = 1:nfolds, .combine = rbind) %dopar% {
@@ -199,12 +185,19 @@ cv_gddlm <- function(mu_formula,
         }
 
     set.seed(NULL)
+    # one_se <- apply(CV_error, 2, sd) / sqrt(nfolds)
+    # one_se <- one_se[which.min(apply(CV_error, 2, mean))]
+    # findgamma_within_onese <- gamma_seq[apply(CV_error, 2, mean) < (min(apply(CV_error, 2, mean)) + one_se)]
     out <- list(call = match.call(),
                 gamma_seq = gamma_seq,
-                gamma_optimal = gamma_seq[which.min(apply(CV_error, 2, median))],
+                gamma_optimal_mean = gamma_seq[which.min(apply(CV_error, 2, mean, na.rm = TRUE))],
+                gamma_optimal_median = gamma_seq[which.min(apply(CV_error, 2, median, na.rm = TRUE))],
+                # gamma_optimal_1se = min(findgamma_within_onese),
                 all_CV = CV_error,
+                mean_CV = apply(CV_error, 2, mean),
                 median_CV = apply(CV_error, 2, median),
                 foldid = fold_index)
+
     if(plotit) {
         p <- ggplot(data.frame(gamma_seq = out$gamma_seq,
                                median_cv = out$median_CV),
@@ -219,7 +212,4 @@ cv_gddlm <- function(mu_formula,
     class(out) <- "cv_gddlm"
     return(out)
     }
-
-
-
 
