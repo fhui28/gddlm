@@ -33,7 +33,7 @@ Extracts estimates of coefficients characterizing the mean (mu) and the log of t
 See associated manuscript (currently in preparation).
 }
 \examples{
-\dontrun{
+\donttest{
 # See help function for the gddlm_lsa() function for an example
 }
 

@@ -27,8 +27,8 @@ Simulate one or more responses from a fitted \code{gddlm} object.
 Acknowledgments to Hannes Riebl and the \code{lmls} package on whose code this function is adapted off.
 }
 \examples{
-\dontrun{
-See the main `gddlm` help file for examples.
+\donttest{
+# See the main `gddlm` help file for examples.
 }
 
 }

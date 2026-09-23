@@ -64,7 +64,7 @@ Optimization is performed via a minorization-maximization (MM) algorithm, while 
 Please see manuscript for more details (currently in preparation).
 }
 \examples{
-\dontrun{
+\donttest{
 library(tidyverse)
 library(GJRM)
 library(mgcv)

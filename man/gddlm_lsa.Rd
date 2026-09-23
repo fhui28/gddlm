@@ -77,7 +77,7 @@ In terms of model selection, the function computes the following information cri
 }
 }
 \examples{
-\dontrun{
+\donttest{
 library(tidyverse)
 library(GJRM)
 library(gamlss.lasso)

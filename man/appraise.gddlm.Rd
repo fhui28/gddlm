@@ -62,8 +62,8 @@ This function is basically a wrapper around the \code{\link[gratia:appraise]{gra
 Acknowledgments to Gavin Simpson and the \code{gratia} package for the original \code{\link[gratia:appraise]{gratia::appraise()}} function.
 }
 \examples{
-\dontrun{
-See the main `gddlm` help file for examples.
+\donttest{
+# See the main `gddlm` help file for examples.
 }
 
 }

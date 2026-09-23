@@ -22,8 +22,8 @@ A vector of fitted values
 Extracts the covariance (inverse Fisher information) matrix corresponding to either the mean or the log standard deviation part of the fitted robust double linear model.
 }
 \examples{
-\dontrun{
-See the main `gddlm` help file for examples.
+\donttest{
+# See the main `gddlm` help file for examples.
 }
 
 }
