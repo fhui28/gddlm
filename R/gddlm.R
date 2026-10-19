@@ -12,7 +12,7 @@
 #' @param sigma_formula A single-sided formula describing how the log of the standard deviation is regressed against the covariates in the double linear model.
 #' @param data A data frame containing the response and covariates used in `mu_formula` and `sigma_formula`.
 #' @param gamma_tuning A positive tuning parameter for the gamma divergence, and typically less than 1 for fitting robust double linear models. The closer this value is to zero, the more the gamma divergence behaves like standard maximum likelihood estimation e.g., the same as what is done in [mgcv::gam()] with the [mgcv::gaulss()] family, or in the [lmls::lmls()] function.
-#' @param sandwich Should the function return sandwich standard errors for the coefficient estimates in the mean and standard deviation parts of the double linear model? Defaults to FALSE, in which case the function returns standard errors based on the inverse of the observed information matrix i.e., the bread matrix only, based on the gamma divergence.
+#' @param sandwich Should the function return sandwich standard errors for the coefficient estimates in the mean and standard deviation parts of the double linear model? If `FALSE`, then the function returns standard errors based on the inverse of the observed information matrix i.e., the bread matrix only, based on the gamma divergence.
 #' @param control A list of control parameters for fitting the gamma divergence double linear model. The list can contain the following elements:
 #' \itemize{
 #' \item \code{max_iteration}: The maximum number of iterations for the MM algorithm.
@@ -95,6 +95,7 @@
 #' fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 #' sigma_formula = make_sigma_formula,
 #' data = data.frame(response = Y, X[,-1]),
+#' sandwich = TRUE,
 #' gamma_tuning = choosegamma$gamma_optimal_mean)
 #'
 #' # Demonstration of some of the functions available in the package
@@ -124,16 +125,19 @@
 #' fit_gddlmgamma01 <- gddlm(mu_formula = make_mu_formula,
 #' sigma_formula = make_sigma_formula,
 #' data = data.frame(response = Y, X[,-1]),
+#' sandwich = TRUE,
 #' gamma_tuning = 0.1)
 #'
 #' fit_gddlmgamma02 <- gddlm(mu_formula = make_mu_formula,
 #' sigma_formula = make_sigma_formula,
 #' data = data.frame(response = Y, X[,-1]),
+#' sandwich = TRUE,
 #' gamma_tuning = 0.2)
 #'
 #' fit_gddlmgamma05 <- gddlm(mu_formula = make_mu_formula,
 #' sigma_formula = make_sigma_formula,
 #' data = data.frame(response = Y, X[,-1]),
+#' sandwich = TRUE,
 #' gamma_tuning = 0.5)
 #'
 #' ## Non-robust approach
