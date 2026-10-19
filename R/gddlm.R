@@ -238,8 +238,8 @@ gddlm <- function(mu_formula,
     fit_start <- gam(list(mu_formula, sigma_formula),
                      data = data,
                      family = gaulss(), method = "ML")
-    mu_coefficients <- fit_start$coefficients[1:ncol(mu_X)]^control$dampening[1]
-    sigma_coefficients <- fit_start$coefficients[-(1:ncol(mu_X))]^control$dampening[2]
+    mu_coefficients <- fit_start$coefficients[1:ncol(mu_X)]*control$dampening[1]
+    sigma_coefficients <- fit_start$coefficients[-(1:ncol(mu_X))]*control$dampening[2]
     old_gamma_divergence <- -Inf
 
 
@@ -354,6 +354,11 @@ gddlm <- function(mu_formula,
     if(sandwich) {
         grad_betai <- mu_X * ww * Z
         grad_alphai <- sig_X * (ww * tau + n * gamma_tuning/(1 + gamma_tuning) * c_i)
+        # Adjustment for the common random denominator of the density weights
+        pi_i <- n * c_i
+        ubar_pi <- colSums(c_i * sig_X)
+        grad_alphai <- grad_alphai + gamma_tuning/(1 + gamma_tuning) * outer(ww - pi_i, ubar_pi)
+
         all_gradi <- cbind(grad_betai, grad_alphai)
         meat_full <- matrix(rowSums(apply(all_gradi, 1, tcrossprod)), ncol(all_gradi), ncol(all_gradi))  #' Meat matrix
 
