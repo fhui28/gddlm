@@ -211,7 +211,7 @@ gddlm <- function(mu_formula,
     if(is.null(control$max_iteration))
         control$max_iteration <- 1e3
     if(is.null(control$tol))
-        control$tol <- 1e-4
+        control$tol <- 1e-5
     if(is.null(control$dampening))
         control$dampening <- c(1,1)
     if(is.null(control$trace))
@@ -227,10 +227,6 @@ gddlm <- function(mu_formula,
     fake_gam_sig <- mgcv::gam(expand_sigma_formula, data = data, family = gaussian())
     sig_X <- mgcv::model.matrix.gam(fake_gam_sig)
     rm(fake_gam_sig, expand_sigma_formula)
-
-    fake_gam_lmls <- mgcv::gam(list(mu_formula, sigma_formula),
-                               data = data,
-                               family = gaulss())
 
     ##-----------------------
     #' # initial values
