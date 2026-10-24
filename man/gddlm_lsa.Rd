@@ -115,18 +115,13 @@ formula
 ## Select the gamma tuning parameter via cross-validation
 runcv <- cv_gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
+threshold = 0.5,
 data = data.frame(response = Y, X[,-1]))
-
-choosegamma <- choosegamma_gddlm(mu_formula = make_mu_formula,
-sigma_formula = make_sigma_formula,
-data = data.frame(response = Y, X[,-1]))
-
 
 fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
 data = data.frame(response = Y, X[,-1]),
-sandwich = TRUE,
-gamma_tuning = choosegamma$gamma_optimal_mean)
+gamma_tuning = runcv$gamma_optimal_mean)
 
 
 # Construct regularization path via least squares approximation with BAR penalty

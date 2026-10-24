@@ -9,7 +9,7 @@ gddlm(
   sigma_formula,
   data,
   gamma_tuning = 0.1,
-  sandwich = FALSE,
+  sandwich = TRUE,
   control = list(max_iteration = 1000, tol = 1e-05, dampening = c(1, 1), trace = FALSE)
 )
 }
@@ -101,17 +101,14 @@ formula
 ## Select the gamma tuning parameter via cross-validation
 runcv <- cv_gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
+threshold = 0.5,
 data = data.frame(response = Y, X[,-1]))
 
-choosegamma <- choosegamma_gddlm(mu_formula = make_mu_formula,
-sigma_formula = make_sigma_formula,
-data = data.frame(response = Y, X[,-1]))
-
+## Fit the model with the optimal gamma tuning parameter
 fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
 data = data.frame(response = Y, X[,-1]),
-sandwich = TRUE,
-gamma_tuning = choosegamma$gamma_optimal_mean)
+gamma_tuning = runcv$gamma_optimal_mean)
 
 # Demonstration of some of the functions available in the package
 fit_gddglm_choosegamma
@@ -140,19 +137,16 @@ predict(fit_gddglm_choosegamma, predictor = "sigma", se.fit = TRUE)
 fit_gddlmgamma01 <- gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
 data = data.frame(response = Y, X[,-1]),
-sandwich = TRUE,
 gamma_tuning = 0.1)
 
 fit_gddlmgamma02 <- gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
 data = data.frame(response = Y, X[,-1]),
-sandwich = TRUE,
 gamma_tuning = 0.2)
 
 fit_gddlmgamma05 <- gddlm(mu_formula = make_mu_formula,
 sigma_formula = make_sigma_formula,
 data = data.frame(response = Y, X[,-1]),
-sandwich = TRUE,
 gamma_tuning = 0.5)
 
 ## Non-robust approach
