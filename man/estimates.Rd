@@ -15,7 +15,7 @@ estimates(object, ...)
 
 \item{...}{Not used.}
 
-\item{lambda}{The tuning parameter at which estimates are estimated. This can either be a string taking values e.g., \code{AIC}, \code{BIC}, \code{EBIC} and \code{EBIC2}, corresponding to taking the estimates based on minimizing of these information criterion (see \code{\link[=gddlm_lsa]{gddlm_lsa()}} for more information on these criterion), or a numeric value corresponding to specific tuning parameter value. Similar to \code{\link[glmnet:predict.glmnet]{glmnet::coef.glmnet()}}, in the case of the latter it uses linear interpolation to construct parameter estimates for values of \code{lambda} that do not coincide with those used in the fitting algorithm.}
+\item{lambda}{The tuning parameter at which estimates are estimated. This can either be a string taking values e.g., \code{AIC}, \code{BIC}, \code{EBIC} and \code{EBIC2}, corresponding to taking the estimates based on minimizing of these information criterion (see \code{\link[=gddlm_lsa]{gddlm_lsa()}} for more information on these criterion), or a numeric value corresponding to specific tuning parameter value. Similar to \code{\link[glmnet:coef.glmnet]{glmnet::coef.glmnet()}}, in the case of the latter it uses linear interpolation to construct parameter estimates for values of \code{lambda} that do not coincide with those used in the fitting algorithm.}
 }
 \value{
 A list with the following elements:
