@@ -51,7 +51,7 @@ library(gddlm)
 Simulate data from a double linear model with (average 5%) outliers in the response variable
 
 ```{r}
-set.seed(062026)
+set.seed(112026)
 n <- 500
 p <- 10
 H <- abs(outer(1:p, 1:p, "-"))
@@ -89,7 +89,7 @@ runcv <- cv_gddlm(mu_formula = make_mu_formula,
 fit_gddglm_choosegamma <- gddlm(mu_formula = make_mu_formula,
                                 sigma_formula = make_sigma_formula,
                                 data = data.frame(response = Y, X[,-1]),
-                                gamma_tuning = runcv$gamma_optimal)
+                                gamma_tuning = runcv$gamma_optimal_mean)
 ```
 
 
