@@ -40,16 +40,13 @@
 #' # See the main `gddlm` help file for examples.
 #' }
 #'
-#' @export
-#'
 #' @importFrom doParallel registerDoParallel
 #' @importFrom ggplot2 ggplot geom_point geom_line theme_bw labs aes
 #' @importFrom parallel detectCores
 #' @importFrom foreach foreach %dopar% %do%
 #' @importFrom rlang .data
 #' @importFrom stats median quantile
-#' @md
-choosegamma_gddlm <- function(mu_formula,
+.choosegamma_gddlm <- function(mu_formula,
                               sigma_formula,
                               data,
                               gamma_seq = c(0.001, seq(0.05, 0.5, by = 0.05)),
