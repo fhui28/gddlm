@@ -36,10 +36,10 @@ gddlm_lsa(
 
 \item{control}{A list containing the following elements:
 \itemize{
-\item{max_iteration: }{the maximum number of iterations in the BAR penalty algorithm.}
-\item{sequential: }{A logical indicating whether to perform selection on the mu component first, then selection on the sigma component. Default to \code{FALSE}, in which joint selection is performed on both components simultaneously.}
-\item{tol: }{the convergence criterion for the BAR penalty algorithm; the squared norm of the difference between estimates from successive iterations must be smaller than this value.}
-\item{round_eps: }{a tolerance to round values to zero; this is technically not needed as the BAR penalty will produce exactly zero estimates up to machine error, but is included anyway.}
+\item \code{max_iteration}: The maximum number of iterations in the BAR penalty algorithm.
+\item \code{sequential}: A logical indicating whether to perform selection on the mu component first, then selection on the sigma component. Default to \code{FALSE}, in which joint selection is performed on both components simultaneously.
+\item \code{tol}: The convergence criterion for the BAR penalty algorithm; the squared norm of the difference between estimates from successive iterations must be smaller than this value.
+\item \code{round_eps}: A tolerance to round values to zero; this is technically not needed as the BAR penalty will produce exactly zero estimates up to machine error, but is included anyway.
 }}
 }
 \value{
